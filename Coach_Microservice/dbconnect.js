@@ -29,6 +29,10 @@ mongoose.connection.on('disconnected', () => {
     setTimeout(connectDB, 5000); // Attempt to reconnect after 5 seconds
 });
 
+<<<<<<< HEAD
+// Handle connection errors after initial connection
+mongoose.connection.on('error', (err) => {
+    console.error('MongoDB connection error:', err);
 // Handle connection errors after initial connection
 mongoose.connection.on('error', (err) => {
     console.error('MongoDB connection error:', err);
