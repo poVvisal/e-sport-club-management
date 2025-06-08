@@ -1,15 +1,13 @@
+require('dotenv').config()
 const express = require('express');
 const app = express();
 const httpProxy = require('http-proxy');
 const proxy = httpProxy.createProxyServer();
 const jwt = require('jsonwebtoken');
 
-// CRITICAL: This MUST be the exact same secret key used in your Authentication_Microservice
-const JWT_SECRETE = "347186591486#^%%ABCF*##GHE";
+const JWT_SECRET = process.env.JWT_SECRET;
 
-// =================================================================================
-//  THE NEW HTML ERROR PAGE GENERATOR
-// =================================================================================
+
 function generateErrorHTML(statusCode, title, message, roast) {
     return `
     <html>
@@ -44,7 +42,6 @@ function generateErrorHTML(statusCode, title, message, roast) {
     </body>
     </html>`;
 }
-
 
 // --- MIDDLEWARE 1: AUTHENTICATE THE TOKEN (NOW WITH HTML ERRORS) ---
 function authToken(req, res, next) {

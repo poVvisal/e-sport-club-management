@@ -1,11 +1,12 @@
-// Authentication_Microservice/authentication-service.js
+require('dotenv').config(); // Load environment variables from .env file
 const express = require('express');
 const app = express();
 const jwt = require('jsonwebtoken');
 app.use(express.json());
 
+
 // CRITICAL: This MUST be the exact same secret key used in your API_Gateway
-const JWT_SECRETE = "347186591486#^%%ABCF*##GHE";
+const JWT_SECRET = process.env.JWT_SECRET;
 
 const PersonModel = require('./person_schema.js');
 const dbconnect = require('./dbconnect.js');
@@ -173,7 +174,7 @@ app.post("/login", async (req, res) => {
                     email: foundUser.emailid,
                     role: foundUser.role // THIS IS THE WAY
                 },
-                JWT_SECRETE,
+                JWT_SECRET,
                 { expiresIn: '24h' }
             );
 

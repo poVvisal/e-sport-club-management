@@ -1,26 +1,40 @@
-// The NEW and IMPROVED dbconnect.js
+require('dotenv').config(); // Load environment variables from .env
+
 const mongoose = require('mongoose');
 
-const uri = "mongodb+srv://visal2:123@dead-drop-db.shfcaup.mongodb.net/?retryWrites=true&w=majority&appName=dead-drop-db";
+const uri = process.env.MONGODB_URI;
+
+if (!uri) {
+    console.error('MONGODB_URI is not defined in .env file');
+    process.exit(1);
+}
 
 const clientOptions = {
     serverApi: { version: '1', strict: true, deprecationErrors: true }
 };
 
-// This is the standard way to connect for an Express server
-mongoose.connect(uri, clientOptions)
-    .then(() => {
-        console.log("MongoDB connection established successfully!");
-    })
-    .catch(err => {
-        console.error("MongoDB connection error:", err);
-        process.exit(1); // Exit the process with an error code if we can't connect
-    });
+async function connectDB() {
+    try {
+        await mongoose.connect(uri, clientOptions);
+        console.log('MongoDB connection established successfully!');
+    } catch (err) {
+        console.error('MongoDB connection error:', err);
+        process.exit(1);
+    }
+}
 
-// You can still listen for events if you want
+// Handle disconnection
 mongoose.connection.on('disconnected', () => {
-    console.log('MongoDB disconnected.');
+    console.log('MongoDB disconnected. Attempting to reconnect...');
+    setTimeout(connectDB, 5000); // Attempt to reconnect after 5 seconds
 });
 
-// Export the mongoose object. It will now manage the connection pool for you.
+// Handle connection errors after initial connection
+mongoose.connection.on('error', (err) => {
+    console.error('MongoDB connection error:', err);
+});
+
+// Call the connection function
+connectDB();
+
 module.exports = mongoose;
