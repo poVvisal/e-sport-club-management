@@ -1,0 +1,7 @@
+# This rule ignores any folder named 'node_modules' in any sub-directory.
+# This single line handles all 5 of your microservices.
+node_modules/
+
+# It's also best practice to ignore environment files and logs.
+.env
+*.log
