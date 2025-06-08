@@ -1,7 +1,7 @@
 // The NEW and IMPROVED dbconnect.js
 const mongoose = require('mongoose');
 
-const uri = "mongodb+srv://visal2:123@dead-drop-db.shfcaup.mongodb.net/?retryWrites=true&w=majority&appName=dead-drop-db";
+const uri = "URL";
 
 const clientOptions = {
     serverApi: { version: '1', strict: true, deprecationErrors: true }
