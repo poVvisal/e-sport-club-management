@@ -1,13 +1,5 @@
 Registration Service
 
-coach's token
-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImpvaG4uZG9lLmNvYWNoQHZhaW5nbG9yeS5jb20iLCJyb2xlIjoiY29hY2giLCJpYXQiOjE3NDk0OTM5MTksImV4cCI6MTc0OTU4MDMxOX0.hKCi5lv5RedLj6lVge-mXpaVLnRc7CMKgSIjUo-wRDc
-
-
-player's token
-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImF1bmcubWluLnBsYXllckB2YWluZ2xvcnkuY29tIiwicm9sZSI6InBsYXllciIsImlhdCI6MTc0OTQ5NjM2OCwiZXhwIjoxNzQ5NTgyNzY4fQ.NdiKIEEXcOeb8MrefSpikBGdsNEfo9hbE534oPLIFVU
-
-
 # Registration Microservice
 
 POST http://localhost:4000/reg/coach
@@ -177,3 +169,55 @@ Body:
 DELETE http://localhost:4000/admin/schedule/2001
 Body:
 (empty)
+
+
+1. Coach Update Password
+Endpoint:
+PUT /coach/update-password
+
+Example Request (JSON):
+
+{
+  "email": "coach1@email.com",
+  "currentPassword": "oldcoachpass",
+  "newPassword": "newcoachpass"
+}
+
+2. Admin Update Password
+Endpoint:
+PUT /admin/update-password
+
+Example Request (JSON):
+
+{
+  "email": "admin@email.com",
+  "currentPassword": "oldadminpass",
+  "newPassword": "newadminpass"
+}
+
+Update password:
+PUT /player/update-password
+
+{
+  "email": "player@email.com",
+  "oldPassword": "oldpass",
+  "newPassword": "newpass"
+}
+Reset password:
+PUT /player/reset-password
+
+{
+  "email": "player@email.com",
+  "mobile": "1234567890",
+  "newPassword": "newpass"
+}
+
+coach seach players by id or email
+
+GET /coach/player-search?id=1234
+GET /coach/player-search?email=player1@email.com
+
+admin seach coach by ID or email
+
+GET /admin/coach-search?id=5678
+GET /admin/coach-search?email=coach1@email.com

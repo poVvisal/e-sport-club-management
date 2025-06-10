@@ -7,6 +7,7 @@ app.use(bodyParser.json());
 const dbconnect = require('./dbconnect.js');
 const ScheduleModel = require('./schedule_schema.js');
 const VodModel = require('./vod_schema.js');
+const PersonModel = require('./person_schema.js'); // Add if not already present
 
 const { generatePlayerHTML, generateErrorHTML } = require('./playerUI.js');
 
@@ -63,6 +64,69 @@ app.put('/reviewvod/:vodId', async (req, res) => {
         res.status(200).send(html);
     } catch (err) {
         generateErrorHTML(res, 500, err.message || 'Error updating VOD');
+    }
+});
+
+// PUT /player/update-password - Player updates their password (requires old password)
+app.put('/player/update-password', async (req, res) => {
+    const { email, oldPassword, newPassword } = req.body;
+    if (!email || !oldPassword || !newPassword) {
+        return generateErrorHTML(res, 400, 'Email, old password, and new password are required.');
+    }
+    try {
+        const user = await PersonModel.findOne({ emailid: email, role: 'player' });
+        if (!user) {
+            return generateErrorHTML(res, 404, 'Player not found.');
+        }
+        if (user.pass !== oldPassword) {
+            return generateErrorHTML(res, 401, 'Old password is incorrect.');
+        }
+        user.pass = newPassword;
+        await user.save();
+        const html = generatePlayerHTML('Password Updated', 'Your password has been updated successfully.', { name: user.name, emailid: user.emailid });
+        res.status(200).send(html);
+    } catch (err) {
+        generateErrorHTML(res, 500, err.message);
+    }
+});
+
+// PUT /player/reset-password - Player resets (forgets) their password using mobile verification
+app.put('/player/reset-password', async (req, res) => {
+    const { email, mobile, newPassword } = req.body;
+    if (!email || !mobile || !newPassword) {
+        return generateErrorHTML(res, 400, 'Email, mobile number, and new password are required.');
+    }
+    try {
+        const user = await PersonModel.findOne({ emailid: email, mobile: mobile, role: 'player' });
+        if (!user) {
+            return generateErrorHTML(res, 404, 'Player not found or mobile number does not match.');
+        }
+        user.pass = newPassword;
+        await user.save();
+        const html = generatePlayerHTML('Password Reset', 'Your password has been reset successfully.', { name: user.name, emailid: user.emailid });
+        res.status(200).send(html);
+    } catch (err) {
+        generateErrorHTML(res, 500, err.message);
+    }
+});
+
+// GET /match/:matchId
+app.get('/:matchId', async (req, res) => {
+    const matchId = parseInt(req.params.matchId);
+    if (!matchId) {
+        const html = UI('MATCH SEARCH', 'Match ID is required.', null);
+        return res.status(400).send(html);
+    }
+    try {
+        const match = await ScheduleModel.findOne({ matchId }, { __v: 0, _id: 0 });
+        if (!match) {
+            const html = UI('MATCH SEARCH', 'Match not found.', null);
+            return res.status(404).send(html);
+        }
+        const html = UI('MATCH SEARCH', 'Match found.', match);
+        res.status(200).send(html);
+    } catch (err) {
+        res.status(500).send({ message: err.message });
     }
 });
 
