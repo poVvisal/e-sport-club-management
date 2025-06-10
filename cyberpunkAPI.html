@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Docs // Cyberpunk Grid Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Exo+2:wght@400;500;600&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent-cyan: #08d9d6;
+            --accent-pink: #ff2e63;
+            --bg-dark: #0a0a0a;
+            --surface-dark: rgba(20, 20, 30, 0.5);
+            --border-glow: rgba(8, 217, 214, 0.3);
+            --text-main: #eaeaea;
+            --text-muted: #888;
+        }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Exo 2', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            overflow-x: hidden;
+        }
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+        .font-fira { font-family: 'Fira Code', monospace; }
+
+        /* Animated Grid Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-image: 
+                linear-gradient(to right, rgba(8, 217, 214, 0.1) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(8, 217, 214, 0.1) 1px, transparent 1px);
+            background-size: 40px 40px;
+            animation: pan 120s linear infinite;
+            z-index: -1;
+        }
+        @keyframes pan {
+            0% { background-position: 0 0; }
+            100% { background-position: 1200px 1200px; }
+        }
+
+        /* Method Tags */
+        .method-tag {
+            color: #0a0a0a;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.875rem;
+            border-radius: 0.375rem;
+            font-family: 'Fira Code', monospace;
+            font-weight: 700;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+        }
+        .method-GET { background-color: var(--accent-cyan); }
+        .method-POST { background-color: var(--accent-pink); }
+        .method-PUT { background-color: #f59e0b; }
+        .method-DELETE { background-color: #ff6b6b; }
+
+        /* Input Styling */
+        .param-input {
+            background-color: rgba(0,0,0,0.3);
+            border: 1px solid var(--border-glow);
+            color: var(--text-main);
+            transition: all 0.2s ease;
+        }
+        .param-input:focus {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 10px var(--border-glow), inset 0 0 5px var(--border-glow);
+            outline: none;
+        }
+        
+        /* Glassmorphism Cards */
+        .glass-card {
+            background: var(--surface-dark);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-glow);
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+        }
+        
+        /* Button Glow Effect */
+        .action-button {
+            background-color: var(--accent-pink);
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 0 10px rgba(255, 46, 99, 0.4);
+        }
+        .action-button:hover {
+            box-shadow: 0 0 20px rgba(255, 46, 99, 0.8);
+            transform: translateY(-2px);
+        }
+
+        /* Preview Tabs */
+        .preview-tab {
+             background-color: rgba(0,0,0,0.2);
+             border: 1px solid var(--border-glow);
+             color: var(--text-muted);
+        }
+        .preview-tab.active {
+            background-color: var(--accent-cyan);
+            border-color: var(--accent-cyan);
+            color: #0a0a0a;
+            text-shadow: 0 0 5px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="sticky top-0 z-20 bg-black/50 backdrop-blur-md border-b border-[var(--border-glow)]">
+        <div class="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-20">
+            <div>
+                <h1 class="font-orbitron text-2xl sm:text-3xl font-bold text-white tracking-widest uppercase">
+                    C<span class="text-[var(--accent-cyan)]">O</span>MMAND CENTER
+                </h1>
+            </div>
+            <button id="open-vault-btn" class="flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors border border-white/20">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-[var(--accent-cyan)]" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 8a6 6 0 01-7.743 5.743L10 14l-1 1-1 1H6v2H2v-4l4.257-4.257A6 6 0 1118 8zm-6-4a4 4 0 100 8 4 4 0 000-8z" clip-rule="evenodd" /></svg>
+                <span class="hidden sm:inline">Token Vault</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="lg:grid lg:grid-cols-12 lg:gap-8">
+            <!-- Sidebar Navigation -->
+            <aside class="lg:col-span-3 py-8 lg:py-12 lg:sticky top-20 self-start">
+                <h2 class="font-orbitron text-lg font-bold text-white mb-4">M<span class="text-[var(--accent-cyan)]">I</span>CR<span class="text-[var(--accent-cyan)]">O</span>SERVICES</h2>
+                <ul id="service-nav" class="space-y-2"></ul>
+            </aside>
+
+            <!-- API Sections -->
+            <main class="lg:col-span-9 py-8 lg:py-12 rounded-lg">
+                <div id="api-content" class="space-y-16"></div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Token Vault Modal -->
+    <div id="token-vault-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="glass-card w-full max-w-md rounded-2xl shadow-2xl shadow-black/50 transform scale-95 transition-transform duration-300">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-orbitron text-xl font-bold text-white">T<span class="text-[var(--accent-cyan)]">o</span>ken Vault</h3>
+                    <button id="close-vault-btn" class="p-1 rounded-full text-gray-400 hover:bg-white/10 text-2xl leading-none">&times;</button>
+                </div>
+                <div class="space-y-3">
+                    <input id="token-name-input" type="text" placeholder="Token Name (e.g., Kmav Admin)" class="param-input w-full rounded-md p-2 text-sm">
+                    <textarea id="token-value-input" rows="2" class="param-input w-full rounded-md p-2 text-xs font-fira" placeholder="paste.your.token.here"></textarea>
+                </div>
+                <button id="add-token-btn" class="action-button w-full mt-3 text-sm font-semibold px-3 py-2.5 rounded-lg text-white">Add Token</button>
+            </div>
+            <div id="token-list" class="px-6 pb-6 mt-2 space-y-2 max-h-48 overflow-y-auto"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA STORE ---
+        const apiData = {
+            registration: {
+                title: 'Registration',
+                endpoints: [
+                    { id: 'regCoach', method: 'POST', path: '/reg/coach', description: 'Register a new coach.', params: { body: ['firstname', 'password', 'mobile'] }, defaults: { firstname: 'John Doe', password: 'yourpassword', mobile: '+1234567890' }},
+                    { id: 'regPlayer', method: 'POST', path: '/reg/player', description: 'Register a new player.', params: { body: ['firstname', 'password', 'mobile'] }, defaults: { firstname: 'Jane Doe', password: 'playerpassword', mobile: '+1987654321' }},
+                    { id: 'regAdmin', method: 'POST', path: '/reg/admin', description: 'Register a new admin.', params: { body: ['firstname', 'password', 'mobile'] }, defaults: { firstname: 'Admin Doe', password: 'adminpassword', mobile: '+1555555555' }}
+                ]
+            },
+            authentication: {
+                title: 'Authentication',
+                endpoints: [{ id: 'loginUser', method: 'POST', path: '/auth/login', description: 'Authenticate to get a JWT token.', params: { body: ['email', 'pass'] }, defaults: { email: 'user@vainglory.com', pass: 'yourpassword' }}]
+            },
+            player: {
+                title: 'Player Endpoints',
+                endpoints: [
+                    { id: 'getPlayerSchedules', method: 'GET', path: '/player/schedules', description: 'Get the player\'s match schedules.', needsAuth: true, params: {} },
+                    { id: 'getPlayerMyVods', method: 'GET', path: '/player/myvods', description: 'Get VODs assigned to the player.', needsAuth: true, params: {} },
+                    { id: 'getPlayerMatchById', method: 'GET', path: '/player/:matchId', description: 'Get a specific match by its ID.', needsAuth: true, params: {path: ['matchId']}, defaults: {matchId: 1234} },
+                    { id: 'reviewVod', method: 'PUT', path: '/player/reviewvod/:vodId', description: 'Add notes to a VOD review.', needsAuth: true, params: { path: ['vodId'], body: ['notes'] }, defaults: { vodId: 3001, notes: 'Great play at 10:00' } },
+                    { id: 'playerUpdatePassword', method: 'PUT', path: '/player/update-password', description: 'Update your account password.', needsAuth: true, params: { body: ['email', 'oldPassword', 'newPassword'] }, defaults: { email: 'player@email.com', oldPassword: 'oldpass', newPassword: 'newpass' } },
+                    { id: 'playerResetPassword', method: 'PUT', path: '/player/reset-password', description: 'Reset your account password.', needsAuth: true, params: { body: ['email', 'mobile', 'newPassword'] }, defaults: { email: 'player@email.com', mobile: '1234567890', newPassword: 'newpass' } }
+                ]
+            },
+            coach: {
+                title: 'Coach Endpoints',
+                endpoints: [
+                    { id: 'coachCreateSchedule', method: 'POST', path: '/coach/schedule', description: 'Create a new match schedule.', needsAuth: true, params: { body: ['opponent', 'matchDate', 'game'] }, defaults: { opponent: 'TeamX', matchDate: '2025-06-15', game: 'Valorant' } },
+                    { id: 'coachGetSchedules', method: 'GET', path: '/coach/schedule', description: 'Get all scheduled matches.', needsAuth: true, params: {} },
+                    { id: 'coachGetScheduleById', method: 'GET', path: '/coach/schedule/:matchId', description: 'Get a specific scheduled match.', needsAuth: true, params: {path: ['matchId']}, defaults: {matchId: 1234} },
+                    { id: 'coachAssignVod', method: 'POST', path: '/coach/assignvod', description: 'Assign a VOD to a player.', needsAuth: true, params: { body: ['matchId', 'playerEmail'] }, defaults: { matchId: 1234, playerEmail: 'player@email.com' } },
+                    { id: 'coachGetRoster', method: 'GET', path: '/coach/roster', description: 'Get all registered players.', needsAuth: true, params: {} },
+                    { id: 'coachSearchPlayerEmail', method: 'GET', path: '/coach/player-search', description: 'Search for a player by email.', needsAuth: true, params: {query: ['email']}, defaults: {email: 'player@email.com'} },
+                    { id: 'coachUpdatePassword', method: 'PUT', path: '/coach/update-password', description: 'Update your coach account password.', needsAuth: true, params: { body: ['email', 'currentPassword', 'newPassword'] }, defaults: { email: 'coach@email.com', currentPassword: 'old', newPassword: 'new' } }
+                ]
+            },
+            admin: {
+                title: 'Admin Endpoints',
+                endpoints: [
+                    { id: 'adminGetPlayers', method: 'GET', path: '/admin/players', description: 'Get a list of all players.', needsAuth: true, params: {} },
+                    { id: 'adminGetCoaches', method: 'GET', path: '/admin/coaches', description: 'Get a list of all coaches.', needsAuth: true, params: {} },
+                    { id: 'adminDeleteUserByEmail', method: 'DELETE', path: '/admin/user', description: 'Delete a user by their email.', needsAuth: true, params: { body: ['email'] }, defaults: { email: 'user@email.com' } },
+                    { id: 'adminUpdateUserById', method: 'PUT', path: '/admin/user/:id', description: 'Update a user by their ID.', needsAuth: true, params: { path: ['id'], body: ['name', 'mobile'] }, defaults: { id: 1, name: 'New Name', mobile: '+1234567890' } },
+                    { id: 'adminUpdateSchedule', method: 'PUT', path: '/admin/schedule/:matchId', description: 'Update a match schedule.', needsAuth: true, params: { path: ['matchId'], body: ['opponent', 'matchDate'] }, defaults: { matchId: 1, opponent: 'New Team', matchDate: '2025-07-05T18:00:00Z' } },
+                ]
+            }
+        };
+
+        // --- APP INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            renderNav();
+            renderAllEndpoints();
+            loadTokens();
+            setupEventListeners();
+        });
+
+        // --- EVENT LISTENERS ---
+        function setupEventListeners() {
+            const modal = document.getElementById('token-vault-modal');
+            const modalContent = modal.querySelector('.glass-card');
+            document.getElementById('open-vault-btn').addEventListener('click', () => {
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+                modalContent.classList.remove('scale-95');
+            });
+            document.getElementById('close-vault-btn').addEventListener('click', () => {
+                 modal.classList.add('opacity-0', 'pointer-events-none');
+                 modalContent.classList.add('scale-95');
+            });
+            document.getElementById('add-token-btn').addEventListener('click', addToken);
+        }
+
+        // --- DYNAMIC RENDERING ---
+        function renderNav() {
+            const navContainer = document.getElementById('service-nav');
+            navContainer.innerHTML = Object.keys(apiData).map(key => `
+                <li><a href="#service-${key}" class="block px-4 py-2 rounded-lg text-gray-400 hover:bg-[var(--surface-dark)] hover:text-white transition-colors">${apiData[key].title}</a></li>
+            `).join('');
+        }
+
+        function renderAllEndpoints() {
+            const container = document.getElementById('api-content');
+            container.innerHTML = Object.keys(apiData).map(key => `
+                <section id="service-${key}" class="scroll-mt-24">
+                    <h2 class="font-orbitron text-3xl font-bold text-white mb-8">${apiData[key].title}</h2>
+                    <div class="space-y-8">
+                        ${apiData[key].endpoints.map(endpoint => createEndpointCard(endpoint)).join('')}
+                    </div>
+                </section>
+            `).join('');
+            
+            document.querySelectorAll('.param-input').forEach(input => {
+                input.addEventListener('input', e => updateRequestPreviews(e.target.closest('.endpoint-card')));
+            });
+            document.querySelectorAll('.preview-tab-btn').forEach(button => {
+                button.addEventListener('click', e => switchPreview(e.target.closest('.endpoint-card'), e.target.dataset.target));
+            });
+        }
+        
+        function createEndpointCard(endpoint) {
+            const { path: pathParams = [], body: bodyParams = [], query: queryParams = [] } = endpoint.params;
+            const inputField = (p, type) => `<input type="text" data-param-type="${type}" data-param-name="${p}" value="${endpoint.defaults[p] || ''}" class="param-input w-full rounded-md p-2 text-sm">`;
+            const paramField = (label, p, type) => `<div class="grid grid-cols-12 items-center gap-4"><label class="col-span-3 text-sm font-medium text-[var(--text-muted)] ${label.includes('"') ? 'font-fira text-right' : ''}">${label}</label><div class="col-span-9">${inputField(p, type)}</div></div>`;
+            
+            const hasParams = pathParams.length > 0 || queryParams.length > 0 || bodyParams.length > 0;
+            const authIndicator = endpoint.needsAuth ? `<span class="text-[var(--accent-pink)] font-fira text-xs">[Auth Required]</span>` : '';
+
+            return `
+                <div class="endpoint-card glass-card rounded-xl" data-endpoint-id="${endpoint.id}">
+                    <div class="p-5 border-b border-[var(--border-glow)]">
+                        <div class="flex items-center gap-4 flex-wrap">
+                            <span class="method-tag method-${endpoint.method}">${endpoint.method}</span>
+                            <span class="text-lg font-semibold text-white font-fira">${endpoint.path}</span>
+                            ${authIndicator}
+                        </div>
+                        <p class="text-[var(--text-muted)] mt-2 text-sm">${endpoint.description}</p>
+                    </div>
+                    ${hasParams ? `<div class="p-5 space-y-4">
+                        ${pathParams.map(p => paramField(`${p}:`, p, 'path')).join('')}
+                        ${queryParams.map(p => paramField(`?${p}=`, p, 'query')).join('')}
+                        ${bodyParams.length > 0 ? `<div class="space-y-3 pt-2">
+                            <label class="block text-sm font-medium text-[var(--text-muted)]">Body:</label>
+                            ${bodyParams.map(p => paramField(`<span class="text-[var(--accent-cyan)]">"${p}"</span>:`, p, 'body')).join('')}
+                        </div>` : ''}
+                    </div>` : ''}
+                    <div class="p-5 bg-black/20 border-t border-[var(--border-glow)]">
+                        <div class="flex items-center gap-1 mb-3">
+                           <button class="preview-tab-btn preview-tab active text-xs font-semibold px-3 py-1 rounded-md" data-target="curl">cURL</button>
+                           <button class="preview-tab-btn preview-tab text-xs font-semibold px-3 py-1 rounded-md" data-target="postman">Postman</button>
+                        </div>
+                        <pre class="preview-pane curl-preview bg-black rounded-lg p-4 text-xs font-fira overflow-x-auto"></pre>
+                        <pre class="preview-pane postman-preview hidden bg-black rounded-lg p-4 text-xs font-fira overflow-x-auto"></pre>
+                    </div>
+                </div>`;
+        }
+        
+        // --- INTERACTIVITY ---
+        function updateRequestPreviews(card) {
+            if (!card) return;
+            const endpoint = apiData[Object.keys(apiData).find(key => apiData[key].endpoints.some(ep => ep.id === card.dataset.endpointId))].endpoints.find(ep => ep.id === card.dataset.endpointId);
+            
+            let path = endpoint.path;
+            const bodyObject = {};
+            const queryParams = new URLSearchParams();
+            
+            card.querySelectorAll('.param-input').forEach(input => {
+                const { paramType, paramName } = input.dataset;
+                const value = isNaN(input.value) || input.value === '' ? input.value : Number(input.value);
+                if (paramType === 'path') path = path.replace(`{${paramName}}`, value || `<${paramName}>`);
+                if (paramType === 'body') bodyObject[paramName] = value;
+                if (paramType === 'query' && value) queryParams.set(paramName, value);
+            });
+            
+            const activeToken = getTokens().find(t => t.active)?.value || '<YOUR_ACTIVE_TOKEN>';
+            const fullPath = `http://localhost:4000${path}${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+            
+            let curlCmd = `<span class="text-gray-500"># Execute in your terminal</span>\ncurl -X ${endpoint.method} '${fullPath}'`;
+            if (endpoint.needsAuth) curlCmd += ` \\\n  -H 'Authorization: Bearer <span class="text-[var(--accent-pink)]">${activeToken}</span>'`;
+            if (Object.keys(bodyObject).length > 0) {
+                 curlCmd += ` \\\n  -H 'Content-Type: application/json'`;
+                 curlCmd += ` \\\n  -d '<span class="text-[var(--accent-cyan)]">${JSON.stringify(bodyObject)}</span>'`;
+            }
+            card.querySelector('.curl-preview').innerHTML = curlCmd;
+            
+            let postmanPreview = `<span class="text-gray-500">// For Postman or other API clients</span>\n<span class="text-yellow-400">${endpoint.method}</span> ${fullPath}`;
+            if (Object.keys(bodyObject).length > 0) {
+                 postmanPreview += `\n\n<span class="text-gray-500">// Request Body</span>\n<span class="text-[var(--accent-cyan)]">${JSON.stringify(bodyObject, null, 2)}</span>`;
+            }
+            card.querySelector('.postman-preview').innerHTML = postmanPreview;
+        }
+        
+        function switchPreview(card, target) {
+            card.querySelectorAll('.preview-tab-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.target === target));
+            card.querySelectorAll('.preview-pane').forEach(pane => pane.classList.toggle('hidden', !pane.classList.contains(`${target}-preview`)));
+        }
+
+        // --- TOKEN VAULT LOGIC ---
+        function getTokens() { return JSON.parse(localStorage.getItem('cyberpunkApiDocsTokens') || '[]'); }
+        function saveTokens(tokens) { localStorage.setItem('cyberpunkApiDocsTokens', JSON.stringify(tokens)); }
+        
+        function loadTokens() {
+            const tokenList = document.getElementById('token-list');
+            tokenList.innerHTML = '';
+            const tokens = getTokens();
+            if (tokens.length === 0) {
+                tokenList.innerHTML = `<p class="text-xs text-gray-500 text-center py-2">Your vault is empty.</p>`;
+            } else {
+                 tokens.forEach(token => {
+                    const tokenEl = document.createElement('div');
+                    tokenEl.className = `p-2 rounded-md text-xs cursor-pointer transition-all border ${token.active ? 'border-[var(--accent-cyan)] bg-cyan-500/10' : 'border-transparent bg-white/5 hover:bg-white/10'}`;
+                    tokenEl.onclick = () => setActiveToken(token.id);
+                    tokenEl.innerHTML = `<div class="flex justify-between items-center mb-1"><span class="font-semibold text-white truncate pr-2">${escapeHtml(token.name)}</span><div class="flex items-center gap-2"><button onclick="event.stopPropagation(); copyCode('${escapeHtml(token.value)}', this)" class="text-gray-400 hover:text-white">Copy</button><button onclick="event.stopPropagation(); deleteToken(${token.id})" class="text-red-500 hover:text-red-400 font-bold">&times;</button></div></div><code class="block font-fira text-gray-400 truncate">${escapeHtml(token.value)}</code>`;
+                    tokenList.appendChild(tokenEl);
+                });
+            }
+            document.querySelectorAll('.endpoint-card').forEach(card => updateRequestPreviews(card));
+        }
+        
+        function setActiveToken(id) {
+            let tokens = getTokens().map(t => ({...t, active: t.id === id}));
+            saveTokens(tokens);
+            loadTokens();
+        }
+
+        function addToken() {
+            const nameInput = document.getElementById('token-name-input');
+            const valueInput = document.getElementById('token-value-input');
+            if (!nameInput.value.trim() || !valueInput.value.trim()) return;
+            let tokens = getTokens().map(t => ({...t, active: false}));
+            tokens.push({ id: Date.now(), name: nameInput.value, value: valueInput.value, active: true });
+            saveTokens(tokens);
+            nameInput.value = '';
+            valueInput.value = '';
+            loadTokens();
+        }
+
+        function deleteToken(id) {
+            let tokens = getTokens().filter(t => t.id !== id);
+            if (tokens.length > 0 && !tokens.some(t => t.active)) tokens[0].active = true;
+            saveTokens(tokens);
+            loadTokens();
+        }
+        
+        // --- UTILITIES ---
+        function copyCode(text, button) {
+            navigator.clipboard.writeText(text).then(() => {
+                if(button) {
+                    const originalText = button.textContent;
+                    button.textContent = 'Copied!';
+                    setTimeout(() => { button.textContent = originalText; }, 1500);
+                }
+            });
+        }
+        function escapeHtml(unsafe) { return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
+    </script>
+</body>
+</html>
