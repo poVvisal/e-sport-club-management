@@ -4,6 +4,7 @@ const app = express();
 const httpProxy = require('http-proxy');
 const proxy = httpProxy.createProxyServer();
 const jwt = require('jsonwebtoken');
+const targets = require('./target.js');
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -53,31 +54,30 @@ function authRole(role) {
 // >> Public Routes (No token needed) <<
 app.use('/reg', (req, res) => {
     console.log("Routing to Registration Service...");
-    proxy.web(req, res, { target: 'http://localhost:5001' });
+    proxy.web(req, res, { target: targets.REGISTRATION_SERVICE });
 });
 
 app.use('/auth', (req, res) => {
     console.log("Routing to Authentication Service...");
-    proxy.web(req, res, { target: 'http://localhost:5002' });
+    proxy.web(req, res, { target: targets.AUTHENTICATION_SERVICE });
 });
 
 // >> Protected Routes (Token and Role are required) <<
 app.use('/coach', authToken, authRole('coach'), (req, res) => {
     console.log("Routing to Coach Service...");
-    proxy.web(req, res, { target: 'http://localhost:5003' });
+    proxy.web(req, res, { target: targets.COACH_SERVICE });
 });
 
 app.use('/player', authToken, authRole('player'), (req, res) => {
     console.log("Routing to Player Service...");
-    proxy.web(req, res, { target: 'http://localhost:5004' });
+    proxy.web(req, res, { target: targets.PLAYER_SERVICE });
 });
 
 // !!! NEW ADMIN ROUTE, POINTING TO THE COACH SERVER !!!
 // Requires 'admin' role
 app.use('/admin', authToken, authRole('admin'), (req, res) => {
     console.log("Routing ADMIN request to Coach Service...");
-    // Forward the request to the same server as the coach service
-    proxy.web(req, res, { target: 'http://localhost:5003' });
+    proxy.web(req, res, { target: targets.COACH_SERVICE });
 });
 
 // 404 handler for unmatched routes
