@@ -7,41 +7,7 @@ const jwt = require('jsonwebtoken');
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
-
-function generateErrorHTML(statusCode, title, message, roast) {
-    return `
-    <html>
-    <head>
-        <title>ACCESS DENIED</title>
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@700&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
-        <style>
-            :root {
-                --background: #1A1212; /* Dark, reddish-black */
-                --surface: #2A1A1A;
-                --primary: #F94144; /* A strong red for errors */
-                --text-primary: #F5F5F5;
-                --text-secondary: #A3A3A3;
-            }
-            body { font-family: 'IBM Plex Sans', sans-serif; background: var(--background); color: var(--text-primary); display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-            .container { background: var(--surface); border-left: 8px solid var(--primary); border-radius: 8px; max-width: 700px; margin: auto; padding: 40px; box-shadow: 0 0 40px rgba(249, 65, 68, 0.3); text-align: center; }
-            .status-code { font-family: 'Exo 2', sans-serif; font-size: 6em; font-weight: 700; color: var(--primary); opacity: 0.5; margin: 0; }
-            h1 { font-family: 'Exo 2', sans-serif; color: var(--text-primary); font-size: 2.5em; margin: 10px 0; }
-            p { color: var(--text-secondary); font-size: 1.2em; line-height: 1.6; }
-            .roast { margin-top: 30px; font-size: 1em; font-style: italic; color: var(--primary); opacity: 0.8; }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <p class="status-code">${statusCode}</p>
-            <h1>${title}</h1>
-            <p>${message}</p>
-            <p class="roast">${roast}</p>
-        </div>
-    </body>
-    </html>`;
-}
+const { generateErrorHTML, ApiGatewayErrors } = require('./apiUI.js');
 
 // --- MIDDLEWARE 1: AUTHENTICATE THE TOKEN (NOW WITH HTML ERRORS) ---
 function authToken(req, res, next) {
@@ -55,7 +21,7 @@ function authToken(req, res, next) {
         return res.status(401).send(html);
     }
 
-    jwt.verify(token, JWT_SECRETE, (err, user) => {
+    jwt.verify(token, JWT_SECRET, (err, user) => {
         if (err) {
             console.log("Invalid token!");
             const html = generateErrorHTML(403, 'INVALID TOKEN', 'The token you sent is expired, fake, or otherwise busted.', 'Is this token from a cereal box? Because it\'s not getting you anywhere. Try again.');
@@ -112,6 +78,16 @@ app.use('/admin', authToken, authRole('admin'), (req, res) => {
     console.log("Routing ADMIN request to Coach Service...");
     // Forward the request to the same server as the coach service
     proxy.web(req, res, { target: 'http://localhost:5003' });
+});
+
+// 404 handler for unmatched routes
+app.use((req, res) => {
+    res.status(404).send(ApiGatewayErrors.notFound());
+});
+
+// 500 handler for server errors
+app.use((err, req, res, next) => {
+    res.status(500).send(ApiGatewayErrors.internalError(err.message));
 });
 
 // Start the API Gateway server on Port 4000

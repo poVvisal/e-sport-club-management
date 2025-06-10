@@ -1,0 +1,179 @@
+Registration Service
+
+coach's token
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImpvaG4uZG9lLmNvYWNoQHZhaW5nbG9yeS5jb20iLCJyb2xlIjoiY29hY2giLCJpYXQiOjE3NDk0OTM5MTksImV4cCI6MTc0OTU4MDMxOX0.hKCi5lv5RedLj6lVge-mXpaVLnRc7CMKgSIjUo-wRDc
+
+
+player's token
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImF1bmcubWluLnBsYXllckB2YWluZ2xvcnkuY29tIiwicm9sZSI6InBsYXllciIsImlhdCI6MTc0OTQ5NjM2OCwiZXhwIjoxNzQ5NTgyNzY4fQ.NdiKIEEXcOeb8MrefSpikBGdsNEfo9hbE534oPLIFVU
+
+
+# Registration Microservice
+
+POST http://localhost:4000/reg/coach
+Body:
+{
+  "firstname": "Aung Min",
+  "password": "coachpass1",
+  "mobile": "+959876543210"
+}
+
+POST http://localhost:4000/reg/coach
+Body:
+{
+  "firstname": "Maria Lourdes",
+  "password": "coachpass2",
+  "mobile": "+639171234567"
+}
+
+POST http://localhost:4000/reg/player
+Body:
+{
+  "firstname": "Somchai Prasert",
+  "password": "playerpass1",
+  "mobile": "+66812345678"
+}
+
+POST http://localhost:4000/reg/player
+Body:
+{
+  "firstname": "Tran Thi Hoa",
+  "password": "playerpass2",
+  "mobile": "+84987654321"
+}
+
+POST http://localhost:4000/reg/admin
+Body:
+{
+  "firstname": "Dewi Sartika",
+  "password": "adminpass1",
+  "mobile": "+628112233445"
+}
+
+POST http://localhost:4000/reg/admin
+Body:
+{
+  "firstname": "Phạm Quang Huy",
+  "password": "adminpass2",
+  "mobile": "+84901239876"
+}
+
+------------------------------------------------------------
+
+# Authentication Microservice
+
+POST http://localhost:4000/auth/login
+Body:
+{
+  "email": "aung.min.coach@vainglory.com",
+  "pass": "coachpass1"
+}
+
+POST http://localhost:4000/auth/login
+Body:
+{
+  "email": "somchai.prasert.player@vainglory.com",
+  "pass": "playerpass1"
+}
+
+------------------------------------------------------------
+
+# Coach Microservice
+
+POST http://localhost:4000/coach/schedule
+Body:
+{
+  "opponent": "Manila Eagles",
+  "matchDate": "2025-07-01T15:00:00Z",
+  "game": "Vainglory"
+}
+
+POST http://localhost:4000/coach/schedule
+Body:
+{
+  "opponent": "Yangon Warriors",
+  "matchDate": "2025-07-10T19:00:00Z",
+  "game": "Vainglory"
+}
+
+POST http://localhost:4000/coach/assignvod
+Body:
+{
+  "matchId": 2001,
+  "playerEmail": "tran.thi.hoa.player@vainglory.com"
+}
+
+POST http://localhost:4000/coach/assignvod
+Body:
+{
+  "matchId": 2002,
+  "playerEmail": "somchai.prasert.player@vainglory.com"
+}
+
+------------------------------------------------------------
+
+# Player Microservice
+
+PUT http://localhost:4000/player/reviewvod/3001
+Body:
+{
+  "notes": "Need to improve teamfight positioning."
+}
+
+PUT http://localhost:4000/player/reviewvod/3001
+Body:
+{
+  "notes": "Great early game, but lost vision control mid-game."
+}
+
+------------------------------------------------------------
+
+# Admin Endpoints
+
+DELETE http://localhost:4000/admin/user
+Body:
+{
+  "email": "maria.lourdes.coach@vainglory.com"
+}
+
+DELETE http://localhost:4000/admin/user
+Body:
+{
+  "email": "dewi.sartika.admin@vainglory.com"
+}
+
+PUT http://localhost:4000/admin/user/2003
+Body:
+{
+  "name": "Maria Lourdes Updated",
+  "mobile": "+639179876543"
+}
+
+PUT http://localhost:4000/admin/user/2003
+Body:
+{
+  "name": "Somchai Prasert Updated",
+  "mobile": "+66811223344"
+}
+
+DELETE http://localhost:4000/admin/user/2003
+Body:
+(empty)
+
+PUT http://localhost:4000/admin/schedule/2001
+Body:
+{
+  "opponent": "Singapore Sentinels",
+  "matchDate": "2025-07-05T18:00:00Z"
+}
+
+PUT http://localhost:4000/admin/schedule/2001
+Body:
+{
+  "opponent": "Hanoi Phoenix",
+  "matchDate": "2025-07-12T20:00:00Z"
+}
+
+DELETE http://localhost:4000/admin/schedule/2001
+Body:
+(empty)

@@ -6,7 +6,7 @@ const PersonSchema = schema_mongoose.Schema({
     name: { type: String }, // 
     emailid: { type: String }, // 
     pass: { type: String }, // 
-    mobile: { type: Number }, // 
+    mobile: { type: String }, // 
     role: { type: String } // 'player', 'coach', 'student', 'teacher' - it handles anything 
 }, {
     timestamps: true // Automatically adds createdAt and updatedAt fields 
