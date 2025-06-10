@@ -15,18 +15,10 @@ module.exports = {
       // Log files for standard output and errors
       out_file: './logs/api-gateway-out.log',
       error_file: './logs/api-gateway-err.log',
+      // Handles API routing and aggregation for all microservices
     },
     {
-      name: 'Auth-Service',
-      script: 'authentication-service.js',
-      cwd: './Authentication_Microservice/',
-      watch: true,
-      ignore_watch: ["node_modules"],
-      out_file: './logs/auth-service-out.log',
-      error_file: './logs/auth-service-err.log',
-    },
-    {
-      name: 'Registration-Service',
+      name: 'Registration-Service', // Handles user registration and authentication
       script: 'registration.js',
       cwd: './Registration_Microservice/',
       watch: true,
@@ -35,7 +27,7 @@ module.exports = {
       error_file: './logs/registration-service-err.log',
     },
     {
-      name: 'Coach-Service',
+      name: 'Coach-Service', // Manages coach-related data and schedules
       script: 'index.js',
       cwd: './Coach_Microservice/',
       watch: true,
@@ -44,7 +36,7 @@ module.exports = {
       error_file: './logs/coach-service-err.log',
     },
     {
-      name: 'Player-Service',
+      name: 'Player-Service', // Manages player-related data and schedules
       script: 'index.js',
       cwd: './Player_Microservice/',
       watch: true,

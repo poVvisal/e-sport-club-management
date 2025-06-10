@@ -227,7 +227,7 @@ app.delete('/schedule/:matchId', (req, res) => {
 });
 
 // PUT /coach/update-password - Coach updates their password
-app.put('/coach/update-password', async (req, res) => {
+app.put('/update-password', async (req, res) => {
     const { email, currentPassword, newPassword } = req.body;
     if (!email || !currentPassword || !newPassword) {
         const html = UI('UPDATE PASSWORD', 'Email, current password, and new password are required.', null);
@@ -366,26 +366,6 @@ app.get('/admin/coach-search', async (req, res) => {
             return res.status(404).send(html);
         }
         const html = UI('COACH SEARCH', 'Coach found.', coach);
-        res.status(200).send(html);
-    } catch (err) {
-        res.status(500).send({ message: err.message });
-    }
-});
-
-// GET /match/:matchId
-app.get('/:matchId', async (req, res) => {
-    const matchId = parseInt(req.params.matchId);
-    if (!matchId) {
-        const html = UI('MATCH SEARCH', 'Match ID is required.', null);
-        return res.status(400).send(html);
-    }
-    try {
-        const match = await ScheduleModel.findOne({ matchId }, { __v: 0, _id: 0 });
-        if (!match) {
-            const html = UI('MATCH SEARCH', 'Match not found.', null);
-            return res.status(404).send(html);
-        }
-        const html = UI('MATCH SEARCH', 'Match found.', match);
         res.status(200).send(html);
     } catch (err) {
         res.status(500).send({ message: err.message });
