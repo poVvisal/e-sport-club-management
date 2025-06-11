@@ -12,8 +12,12 @@ const clientOptions = {
 };
 
 const connectPromise = mongoose.connect(uri, clientOptions)
-    .then(() => {
+    .then(async () => {
         console.log('MongoDB connection established successfully!');
+        // Run admin command to verify admin access
+        const admin = mongoose.connection.db.admin();
+        const result = await admin.command({ ping: 1 });
+        console.log('Admin ping result:', result);
     })
     .catch((err) => {
         console.error('MongoDB connection error:', err);
