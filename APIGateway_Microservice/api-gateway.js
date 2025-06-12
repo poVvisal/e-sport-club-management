@@ -59,7 +59,7 @@ app.use('/reg', (req, res) => {
 
 app.use('/auth', (req, res) => {
     console.log("Routing to Authentication Service...");
-    proxy.web(req, res, { target: targets.AUTHENTICATION_SERVICE });
+    proxy.web(req, res, { target: targets.REGISTRATION_SERVICE });
 });
 
 // >> Protected Routes (Token and Role are required) <<
