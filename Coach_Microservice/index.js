@@ -32,6 +32,9 @@ function authenticateToken(req, res, next) {
     });
 }
 
+// Apply authenticateToken to all protected routes
+app.use(['/update-password', '/reset-password'], authenticateToken);
+
 // POST /schedule - Create a new match
 app.post('/schedule', async (req, res) => {
     console.log("CREATING NEW MATCH");
@@ -244,12 +247,15 @@ app.delete('/schedule/:matchId', (req, res) => {
 
 // Unified password update endpoint
 app.put('/update-password', authenticateToken, async (req, res) => {
-    const { currentPassword, newPassword } = req.body;
+    const { oldPassword, newPassword } = req.body;
     if (!req.user || !req.user.emailid || !req.user.role) {
         return res.status(401).send(UI('UPDATE PASSWORD', 'Invalid user in token.', null));
     }
-    if (!currentPassword || !newPassword) {
-        return res.status(400).send(UI('UPDATE PASSWORD', 'Current and new password are required.', null));
+    if (!oldPassword || !newPassword) {
+        return res.status(400).send(UI('UPDATE PASSWORD', 'Old and new password are required.', null));
+    }
+    if (newPassword.length < 6) {
+        return res.status(400).send(UI('UPDATE PASSWORD', 'New password must be at least 6 characters.', null));
     }
 
     try {
@@ -257,8 +263,8 @@ app.put('/update-password', authenticateToken, async (req, res) => {
         if (!user) {
             return res.status(404).send(UI('UPDATE PASSWORD', `${req.user.role.charAt(0).toUpperCase() + req.user.role.slice(1)} not found.`, null));
         }
-        if (user.pass !== currentPassword) {
-            return res.status(401).send(UI('UPDATE PASSWORD', 'Current password is incorrect.', null));
+        if (user.pass !== oldPassword) {
+            return res.status(401).send(UI('UPDATE PASSWORD', 'Old password is incorrect.', null));
         }
         user.pass = newPassword;
         await user.save();

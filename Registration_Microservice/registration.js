@@ -6,13 +6,11 @@ app.use(bodyParser.json());
 
 const dbconnect = require('./dbconnect.js');
 const PersonModel = require('./person_schema.js');
-const { generateHTMLResponse } = require('./regUI.js'); // <-- Add this import
+const { generateHTMLResponse } = require('./regUI.js');
 
 const jwt = require('jsonwebtoken');
-const JWT_SECRET = process.env.JWT_SECRET; // <-- Add this line
+const JWT_SECRET = process.env.JWT_SECRET;
 app.use(express.json());
-
-
 
 // Generate a unique ID
 function uniqueid(min, max) {
@@ -28,8 +26,6 @@ function generateEmail(name, role) {
         .join('.');
     return `${cleanName}.${role}@vainglory.com`;
 }
-
-
 
 // Generic registration handler
 function registerUser(req, res, role) {
@@ -54,11 +50,10 @@ function registerUser(req, res, role) {
 
     newUser.save()
         .then(doc => {
-            // Map doc.emailid to email for the HTML template
             const userForHtml = {
                 id: doc.id,
                 name: doc.name,
-                email: doc.emailid, // <-- use the generated email
+                email: doc.emailid,
                 mobile: doc.mobile,
                 role: doc.role
             };
@@ -79,14 +74,14 @@ app.post('/player', (req, res) => registerUser(req, res, 'player'));
 // Admin registration
 app.post('/admin', (req, res) => registerUser(req, res, 'admin'));
 
-
-//Authentication 
+// Authentication 
 const {
     generateSuccessHTML,
     invalidCredentialsHTML,
     dbErrorHTML,
     missingFieldsHTML
 } = require('./authUI.js');
+
 // The Login API Endpoint - now using async/await and properly secured
 app.post("/login", async (req, res) => {
     const email = req.body.email;
@@ -111,7 +106,7 @@ app.post("/login", async (req, res) => {
             // The role is taken from the DATABASE (foundUser.role), NOT the request body.
             const token = jwt.sign(
                 {
-                    email: foundUser.emailid || foundUser.email,
+                    emailid: foundUser.emailid,
                     role: foundUser.role
                 },
                 JWT_SECRET,
@@ -131,9 +126,57 @@ app.post("/login", async (req, res) => {
     }
 });
 
+// Middleware to protect routes
+function authenticateToken(req, res, next) {
+    const token = req.headers['authorization'] && req.headers['authorization'].split(' ')[1];
+    if (!token) {
+        return res.status(401).send(missingFieldsHTML('Access token missing.'));
+    }
 
+    jwt.verify(token, JWT_SECRET, (err, user) => {
+        if (err) {
+            return res.status(403).send(invalidCredentialsHTML('Invalid token.'));
+        }
+        req.user = user;
+        next();
+    });
+}
 
+// Protected route example
+app.get('/protected', authenticateToken, (req, res) => {
+    res.send(`Hello ${req.user.emailid}, you are authenticated!`);
+});
 
+// Update password endpoint (for all roles)
+app.put('/update-password', authenticateToken, async (req, res) => {
+    const { oldPassword, newPassword } = req.body;
 
+    if (!oldPassword || !newPassword) {
+        return res.status(400).send('<h3>Both old and new passwords are required.</h3>');
+    }
+
+    try {
+        // Find the user by emailid and role from token
+        const user = await PersonModel.findOne({ emailid: req.user.emailid, role: req.user.role });
+
+        if (!user) {
+            return res.status(404).send('<h3>User not found.</h3>');
+        }
+
+        // Check if the old password matches
+        if (user.pass !== oldPassword) {
+            return res.status(401).send('<h3>Old password is incorrect.</h3>');
+        }
+
+        // Update the password
+        user.pass = newPassword;
+        await user.save();
+
+        res.send('<h3>Password updated successfully.</h3>');
+    } catch (err) {
+        console.error("Error updating password:", err);
+        res.status(500).send('<h3>Internal server error.</h3>');
+    }
+});
 
 app.listen(5001, () => console.log('EXPRESS Server Started at Port No: 5001'));

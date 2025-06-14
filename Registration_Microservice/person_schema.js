@@ -12,4 +12,4 @@ const PersonSchema = schema_mongoose.Schema({
     timestamps: true // Automatically adds createdAt and updatedAt fields 
 });
 
-module.exports = schema_mongoose.model('person_collection', PersonSchema); //
+module.exports = schema_mongoose.model('Person', PersonSchema, 'person_collections');
