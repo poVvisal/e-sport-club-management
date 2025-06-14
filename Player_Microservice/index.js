@@ -69,9 +69,13 @@ app.put('/reviewvod/:vodId', async (req, res) => {
 
 // PUT /update-password - Player updates their password (requires old password)
 app.put('/update-password', async (req, res) => {
-    const { email, oldPassword, newPassword } = req.body;
+    let { email, oldPassword, newPassword } = req.body;
     if (!email || !oldPassword || !newPassword) {
         return generateErrorHTML(res, 400, 'Email, old password, and new password are required.');
+    }
+    email = email.trim().toLowerCase();
+    if (newPassword.length < 6) {
+        return generateErrorHTML(res, 400, 'New password must be at least 6 characters.');
     }
     try {
         const user = await PersonModel.findOne({ emailid: email, role: 'player' });
@@ -86,15 +90,19 @@ app.put('/update-password', async (req, res) => {
         const html = generatePlayerHTML('Password Updated', 'Your password has been updated successfully.', { name: user.name, emailid: user.emailid });
         res.status(200).send(html);
     } catch (err) {
-        generateErrorHTML(res, 500, err.message);
+        generateErrorHTML(res, 500, err.message || 'Error updating password.');
     }
 });
 
 // PUT /reset-password - Player resets (forgets) their password using mobile verification
 app.put('/reset-password', async (req, res) => {
-    const { email, mobile, newPassword } = req.body;
+    let { email, mobile, newPassword } = req.body;
     if (!email || !mobile || !newPassword) {
         return generateErrorHTML(res, 400, 'Email, mobile number, and new password are required.');
+    }
+    email = email.trim().toLowerCase();
+    if (newPassword.length < 6) {
+        return generateErrorHTML(res, 400, 'New password must be at least 6 characters.');
     }
     try {
         const user = await PersonModel.findOne({ emailid: email, mobile: mobile, role: 'player' });
@@ -106,10 +114,9 @@ app.put('/reset-password', async (req, res) => {
         const html = generatePlayerHTML('Password Reset', 'Your password has been reset successfully.', { name: user.name, emailid: user.emailid });
         res.status(200).send(html);
     } catch (err) {
-        generateErrorHTML(res, 500, err.message);
+        generateErrorHTML(res, 500, err.message || 'Error resetting password.');
     }
 });
-
 
 // GET /match/:matchId
 app.get('/:matchId', async (req, res) => {

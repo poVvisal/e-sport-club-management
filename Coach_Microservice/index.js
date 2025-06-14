@@ -4,6 +4,7 @@ const express = require('express');
 const app = express();
 const bodyParser = require("body-parser");
 app.use(bodyParser.json());
+const jwt = require('jsonwebtoken');
 
 // --- Importing our schemas and DB connection ---
 const dbconnect = require('./dbconnect.js');
@@ -12,10 +13,25 @@ const VodModel = require('./vod_schema.js');
 const PersonModel = require('./person_schema.js');
 const UI = require('./coachHtml.js');
 
+const JWT_SECRET = process.env.JWT_SECRET;
+
 // Helper function to generate a unique ID
 function uniqueid(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min);
 }
+
+// Middleware to authenticate and attach user info to req.user
+function authenticateToken(req, res, next) {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    if (!token) return res.status(401).send(UI('AUTH ERROR', 'No token provided.', null));
+    jwt.verify(token, JWT_SECRET, (err, user) => {
+        if (err) return res.status(403).send(UI('AUTH ERROR', 'Invalid token.', null));
+        req.user = user;
+        next();
+    });
+}
+
 // POST /schedule - Create a new match
 app.post('/schedule', async (req, res) => {
     console.log("CREATING NEW MATCH");
@@ -226,23 +242,23 @@ app.delete('/schedule/:matchId', (req, res) => {
         .catch(err => res.status(500).send({ message: err.message }));
 });
 
-// PUT /coach/update-password - Coach updates their password
-app.put('/update-password', async (req, res) => {
-    const { email, currentPassword, newPassword } = req.body;
-    if (!email || !currentPassword || !newPassword) {
-        const html = UI('UPDATE PASSWORD', 'Email, current password, and new password are required.', null);
-        return res.status(400).send(html);
+// Unified password update endpoint
+app.put('/update-password', authenticateToken, async (req, res) => {
+    const { currentPassword, newPassword } = req.body;
+    if (!req.user || !req.user.emailid || !req.user.role) {
+        return res.status(401).send(UI('UPDATE PASSWORD', 'Invalid user in token.', null));
+    }
+    if (!currentPassword || !newPassword) {
+        return res.status(400).send(UI('UPDATE PASSWORD', 'Current and new password are required.', null));
     }
 
     try {
-        const user = await PersonModel.findOne({ emailid: email, role: 'coach' });
+        const user = await PersonModel.findOne({ emailid: req.user.emailid, role: req.user.role });
         if (!user) {
-            const html = UI('UPDATE PASSWORD', 'Coach not found.', null);
-            return res.status(404).send(html);
+            return res.status(404).send(UI('UPDATE PASSWORD', `${req.user.role.charAt(0).toUpperCase() + req.user.role.slice(1)} not found.`, null));
         }
         if (user.pass !== currentPassword) {
-            const html = UI('UPDATE PASSWORD', 'Current password is incorrect.', null);
-            return res.status(401).send(html);
+            return res.status(401).send(UI('UPDATE PASSWORD', 'Current password is incorrect.', null));
         }
         user.pass = newPassword;
         await user.save();
@@ -253,46 +269,20 @@ app.put('/update-password', async (req, res) => {
     }
 });
 
-// PUT /admin/update-password - Admin updates their password
-app.put('/admin/update-password', async (req, res) => {
-    const { email, currentPassword, newPassword } = req.body;
-    if (!email || !currentPassword || !newPassword) {
-        const html = UI('UPDATE PASSWORD', 'Email, current password, and new password are required.', null);
-        return res.status(400).send(html);
+// Unified password reset endpoint
+app.put('/reset-password', authenticateToken, async (req, res) => {
+    const { mobile, newPassword } = req.body;
+    if (!req.user || !req.user.emailid || !req.user.role) {
+        return res.status(401).send(UI('RESET PASSWORD', 'Invalid user in token.', null));
+    }
+    if (!mobile || !newPassword) {
+        return res.status(400).send(UI('RESET PASSWORD', 'Mobile number and new password are required.', null));
     }
 
     try {
-        const user = await PersonModel.findOne({ emailid: email, role: 'admin' });
+        const user = await PersonModel.findOne({ emailid: req.user.emailid, mobile: mobile, role: req.user.role });
         if (!user) {
-            const html = UI('UPDATE PASSWORD', 'Admin not found.', null);
-            return res.status(404).send(html);
-        }
-        if (user.pass !== currentPassword) {
-            const html = UI('UPDATE PASSWORD', 'Current password is incorrect.', null);
-            return res.status(401).send(html);
-        }
-        user.pass = newPassword;
-        await user.save();
-        const html = UI('UPDATE PASSWORD', 'Password updated successfully.', { name: user.name, emailid: user.emailid, role: user.role });
-        res.status(200).send(html);
-    } catch (err) {
-        res.status(500).send({ message: err.message });
-    }
-});
-
-// PUT /coach/reset-password - Coach resets (forgets) their password using mobile verification
-app.put('/coach/reset-password', async (req, res) => {
-    const { email, mobile, newPassword } = req.body;
-    if (!email || !mobile || !newPassword) {
-        const html = UI('RESET PASSWORD', 'Email, mobile number, and new password are required.', null);
-        return res.status(400).send(html);
-    }
-
-    try {
-        const user = await PersonModel.findOne({ emailid: email, mobile: mobile, role: 'coach' });
-        if (!user) {
-            const html = UI('RESET PASSWORD', 'Coach not found or mobile number does not match.', null);
-            return res.status(404).send(html);
+            return res.status(404).send(UI('RESET PASSWORD', `${req.user.role.charAt(0).toUpperCase() + req.user.role.slice(1)} not found or mobile number does not match.`, null));
         }
         user.pass = newPassword;
         await user.save();
@@ -303,31 +293,8 @@ app.put('/coach/reset-password', async (req, res) => {
     }
 });
 
-// PUT /admin/reset-password - Admin resets (forgets) their password using mobile verification
-app.put('/admin/reset-password', async (req, res) => {
-    const { email, mobile, newPassword } = req.body;
-    if (!email || !mobile || !newPassword) {
-        const html = UI('RESET PASSWORD', 'Email, mobile number, and new password are required.', null);
-        return res.status(400).send(html);
-    }
-
-    try {
-        const user = await PersonModel.findOne({ emailid: email, mobile: mobile, role: 'admin' });
-        if (!user) {
-            const html = UI('RESET PASSWORD', 'Admin not found or mobile number does not match.', null);
-            return res.status(404).send(html);
-        }
-        user.pass = newPassword;
-        await user.save();
-        const html = UI('RESET PASSWORD', 'Password reset successfully.', { name: user.name, emailid: user.emailid, role: user.role });
-        res.status(200).send(html);
-    } catch (err) {
-        res.status(500).send({ message: err.message });
-    }
-});
-
-// GET /coach/player-search?email=... OR /coach/player-search?id=...
-app.get('/coach/player-search', async (req, res) => {
+// GET /player-search?email=... OR /player-search?id=...
+app.get('/player-search', async (req, res) => {
     const { id, email } = req.query;
     if (!id && !email) {
         const html = UI('PLAYER SEARCH', 'Provide either player ID or email.', null);
@@ -349,8 +316,8 @@ app.get('/coach/player-search', async (req, res) => {
     }
 });
 
-// GET /admin/coach-search?email=... OR /admin/coach-search?id=...
-app.get('/admin/coach-search', async (req, res) => {
+// GET /coach-search?email=... OR /coach-search?id=...
+app.get('/coach-search', async (req, res) => {
     const { id, email } = req.query;
     if (!id && !email) {
         const html = UI('COACH SEARCH', 'Provide either coach ID or email.', null);
