@@ -130,5 +130,5 @@ app.get('/:matchId', async (req, res) => {
     }
 });
 
-// Start the server on port 5004
-app.listen(5004, () => console.log('Player Microservice running on Port 5004'));
+// Start the server on port 5003
+app.listen(5003, () => console.log('Player Microservice running on Port 5003'));

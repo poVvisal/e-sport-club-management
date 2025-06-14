@@ -372,5 +372,5 @@ app.get('/admin/coach-search', async (req, res) => {
     }
 });
 
-// Start the server on port 5003
-app.listen(5003, () => console.log('Coach Microservice running on Port 5003'));
+// Start the server on port 5002
+app.listen(5002, () => console.log('Coach Microservice running on Port 5002'));
