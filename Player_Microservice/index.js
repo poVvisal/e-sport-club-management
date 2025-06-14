@@ -67,8 +67,8 @@ app.put('/reviewvod/:vodId', async (req, res) => {
     }
 });
 
-// PUT /player/update-password - Player updates their password (requires old password)
-app.put('/player/update-password', async (req, res) => {
+// PUT /update-password - Player updates their password (requires old password)
+app.put('/update-password', async (req, res) => {
     const { email, oldPassword, newPassword } = req.body;
     if (!email || !oldPassword || !newPassword) {
         return generateErrorHTML(res, 400, 'Email, old password, and new password are required.');
@@ -90,8 +90,8 @@ app.put('/player/update-password', async (req, res) => {
     }
 });
 
-// PUT /player/reset-password - Player resets (forgets) their password using mobile verification
-app.put('/player/reset-password', async (req, res) => {
+// PUT /reset-password - Player resets (forgets) their password using mobile verification
+app.put('/reset-password', async (req, res) => {
     const { email, mobile, newPassword } = req.body;
     if (!email || !mobile || !newPassword) {
         return generateErrorHTML(res, 400, 'Email, mobile number, and new password are required.');
@@ -110,20 +110,21 @@ app.put('/player/reset-password', async (req, res) => {
     }
 });
 
+
 // GET /match/:matchId
 app.get('/:matchId', async (req, res) => {
     const matchId = parseInt(req.params.matchId);
     if (!matchId) {
-        const html = UI('MATCH SEARCH', 'Match ID is required.', null);
+        const html = generatePlayerHTML('MATCH SEARCH', 'Match ID is required.', null);
         return res.status(400).send(html);
     }
     try {
         const match = await ScheduleModel.findOne({ matchId }, { __v: 0, _id: 0 });
         if (!match) {
-            const html = UI('MATCH SEARCH', 'Match not found.', null);
+            const html = generatePlayerHTML('MATCH SEARCH', 'Match not found.', null);
             return res.status(404).send(html);
         }
-        const html = UI('MATCH SEARCH', 'Match found.', match);
+        const html = generatePlayerHTML('MATCH SEARCH', 'Match found.', match);
         res.status(200).send(html);
     } catch (err) {
         res.status(500).send({ message: err.message });
