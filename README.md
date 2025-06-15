@@ -1,3 +1,5 @@
+
+
 # E-Sports Team Management System
 
 A microservices-based application for managing esports teams, players, schedules, and tournaments. The system provides role-based access control for coaches, players, and administrators with RESTful APIs for team operations.
@@ -13,6 +15,80 @@ A microservices-based application for managing esports teams, players, schedules
 - **HTML Response Interface**: User-friendly web interface for all operations
 
 ## Architecture
+
+```mermaid
+graph TB
+    %% Client Layer
+    Client[🖥️ Client Applications<br/>Web Browser / Mobile App]
+    
+    %% API Gateway
+    Gateway[🚪 API Gateway<br/>Port: 4000<br/>Request Routing & Load Balancing]
+    
+    %% Microservices
+    Auth[🔐 Registration & Auth Service<br/>Port: 5001<br/>User Management & JWT]
+    Coach[👨‍💼 Coach Service<br/>Port: 5002<br/>Team & Schedule Management]
+    Player[🎮 Player Service<br/>Port: 5003<br/>VOD Reviews & Match Info]
+    
+    %% Database Layer
+    MongoDB[(🗄️ MongoDB<br/>Database<br/>Collections)]
+    
+    %% External Services
+    JWT[🔑 JWT Token<br/>Authentication]
+    PM2[⚙️ PM2<br/>Process Manager]
+    Docker[🐳 Docker<br/>Containerization]
+    
+    %% Client to Gateway
+    Client -->|HTTP Requests| Gateway
+    
+    %% Gateway to Services
+    Gateway -->|/reg/* /auth/*| Auth
+    Gateway -->|/coach/*| Coach
+    Gateway -->|/player/*| Player
+    Gateway -->|/admin/*| Coach
+    
+    %% Services to Database
+    Auth -->|User Data| MongoDB
+    Coach -->|Schedules & Teams| MongoDB
+    Player -->|VOD Reviews| MongoDB
+    
+    %% Authentication Flow
+    Auth -.->|Generate/Verify| JWT
+    Gateway -.->|Validate| JWT
+    Coach -.->|Protected Routes| JWT
+    Player -.->|Protected Routes| JWT
+    
+    %% Infrastructure
+    PM2 -.->|Manages| Gateway
+    PM2 -.->|Manages| Auth
+    PM2 -.->|Manages| Coach
+    PM2 -.->|Manages| Player
+    
+    Docker -.->|Containerizes| Gateway
+    Docker -.->|Containerizes| Auth
+    Docker -.->|Containerizes| Coach
+    Docker -.->|Containerizes| Player
+    Docker -.->|Containerizes| MongoDB
+    
+    %% Database Collections
+    MongoDB --> PersonColl[👥 person_collection<br/>Users, Coaches, Admins]
+    MongoDB --> ScheduleColl[📅 schedule_collection<br/>Match Schedules]
+    MongoDB --> VODColl[🎥 vod_collection<br/>Video Reviews]
+    
+    %% Styling
+    classDef clientStyle fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
+    classDef gatewayStyle fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000
+    classDef serviceStyle fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef dbStyle fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+    classDef infraStyle fill:#fce4ec,stroke:#880e4f,stroke-width:2px,color:#000
+    classDef collectionStyle fill:#f1f8e9,stroke:#33691e,stroke-width:1px,color:#000
+    
+    class Client clientStyle
+    class Gateway gatewayStyle
+    class Auth,Coach,Player serviceStyle
+    class MongoDB dbStyle
+    class JWT,PM2,Docker infraStyle
+    class PersonColl,ScheduleColl,VODColl collectionStyle
+```
 
 The application consists of four microservices:
 
@@ -44,7 +120,7 @@ The application consists of four microservices:
 1. **Clone the repository**
    ```bash
    git clone https://github.com/poVvisal/e-sport-club-management.git
-   cd esports-team-manager
+   cd e-sport-club-management
    ```
 
 2. **Install dependencies for each service**
@@ -89,10 +165,10 @@ The application consists of four microservices:
 ## API Endpoints
 
 ### Registration & Authentication (via API Gateway)
-- `POST /register/player` - Register player
-- `POST /register/coach` - Register coach
-- `POST /register/admin` - Register admin
-- `POST /auth/login` - User login To Generate user's token
+- `POST /reg/player` - Register player
+- `POST /reg/coach` - Register coach
+- `POST /reg/admin` - Register admin
+- `POST /auth/login` - User login to generate user's token
 
 ### Coach Operations (via API Gateway)
 - `GET /coach/schedule` - View scheduled matches
@@ -255,10 +331,10 @@ curl -X PUT http://localhost:4000/admin/schedule/match123 \
 ### 15. Web Interface Access
 You can also access the web interface directly:
 ```bash
-# Registration and Authentication page
-
+# Registration page
 http://localhost:4000/reg
 
+# Authentication page
 http://localhost:4000/auth
 
 # Coach dashboard
@@ -269,6 +345,99 @@ http://localhost:4000/player
 
 # Admin panel
 http://localhost:4000/admin
+```
+
+## Service Flow Diagram
+
+```mermaid
+sequenceDiagram
+    participant C as 🖥️ Client
+    participant G as 🚪 API Gateway
+    participant A as 🔐 Auth Service
+    participant Coach as 👨‍💼 Coach Service
+    participant P as 🎮 Player Service
+    participant DB as 🗄️ MongoDB
+    
+    Note over C,DB: User Registration Flow
+    C->>G: POST /reg/player
+    G->>A: Forward registration request
+    A->>DB: Store user data
+    DB-->>A: User created
+    A-->>G: Registration success
+    G-->>C: User registered
+    
+    Note over C,DB: Authentication Flow
+    C->>G: POST /auth/login
+    G->>A: Forward login request
+    A->>DB: Validate credentials
+    DB-->>A: User found
+    A-->>G: JWT Token
+    G-->>C: Login successful + JWT
+    
+    Note over C,DB: Protected Resource Access
+    C->>G: GET /coach/roster + JWT
+    G->>G: Validate JWT
+    G->>Coach: Forward request
+    Coach->>DB: Get roster data
+    DB-->>Coach: Roster information
+    Coach-->>G: Roster response
+    G-->>C: Team roster data
+    
+    Note over C,DB: VOD Assignment Flow
+    C->>G: POST /coach/assignvod + JWT
+    G->>Coach: Forward VOD assignment
+    Coach->>DB: Create VOD assignment
+    DB-->>Coach: Assignment created
+    Coach->>P: Notify player service
+    Coach-->>G: Assignment success
+    G-->>C: VOD assigned
+```
+
+## Database Schema
+
+```mermaid
+erDiagram
+    PERSON ||--o{ SCHEDULE : manages
+    PERSON ||--o{ VOD : "assigned to"
+    SCHEDULE ||--o{ VOD : "related to"
+    
+    PERSON {
+        string _id PK
+        string firstname
+        string lastname
+        string email
+        string password
+        string mobile
+        string role "player|coach|admin"
+        string game "for players"
+        date createdAt
+        date updatedAt
+    }
+    
+    SCHEDULE {
+        string _id PK
+        string opponent
+        date matchDate
+        string game
+        string venue
+        string status "scheduled|completed|cancelled"
+        string createdBy FK
+        date createdAt
+        date updatedAt
+    }
+    
+    VOD {
+        string _id PK
+        string playerId FK
+        string assignedBy FK
+        string vodUrl
+        string description
+        string review
+        boolean completed
+        date dueDate
+        date createdAt
+        date reviewedAt
+    }
 ```
 
 ## Development
@@ -282,8 +451,6 @@ http://localhost:4000/admin
 ├── ecosystem.config.js            # PM2 configuration
 └── docker-compose.yml             # Docker configuration
 ```
-
-### Database Schema
 
 The application uses MongoDB with the following main collections:
 - `person_collection` - User accounts (players, coaches, admins)
@@ -312,7 +479,7 @@ This project is licensed under the MIT License. See the LICENSE file for details
 
 ## Support
 
-For issues and questions, please create an issue in the GitHub repository or contact the development
+For issues and questions, please create an issue in the GitHub repository or contact the
 
 
 ```mermaid
