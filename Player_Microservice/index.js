@@ -11,11 +11,15 @@ const JWT_SECRET = process.env.JWT_SECRET;
 function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
-    if (!token) return generateErrorHTML(res, 401, 'No token provided.');
+    if (!token) {
+        return generateErrorHTML(res, 401, 'Missing or invalid token.');
+    }
     jwt.verify(token, JWT_SECRET, (err, user) => {
-        if (err) return generateErrorHTML(res, 403, 'Invalid token.');
+        if (err) {
+            return generateErrorHTML(res, 403, 'Invalid token.');
+        }
         req.user = user;
-        next();
+        next(); // <-- This is crucial!
     });
 }
 
@@ -116,28 +120,27 @@ app.put('/reset-password', authenticateToken, async (req, res) => {
 app.put('/update-password', authenticateToken, async (req, res) => {
     const { oldPassword, newPassword } = req.body;
     if (!req.user || !req.user.emailid || req.user.role !== 'player') {
-        return generatePlayerHTML(res, 401, 'Invalid user in token.');
+        return res.status(401).send(generatePlayerHTML('Update Password', 'Invalid user in token.'));
     }
     if (!oldPassword || !newPassword) {
-        return generatePlayerHTML(res, 400, 'Old and new password are required.');
+        return res.status(400).send(generatePlayerHTML('Update Password', 'Old and new password are required.'));
     }
     if (newPassword.length < 6) {
-        return generatePlayerHTML(res, 400, 'New password must be at least 6 characters.');
+        return res.status(400).send(generatePlayerHTML('Update Password', 'New password must be at least 6 characters.'));
     }
     try {
         const user = await PersonModel.findOne({ emailid: req.user.emailid, role: 'player' });
         if (!user) {
-            return generatePlayerHTML(res, 404, 'Player not found.');
+            return res.status(404).send(generatePlayerHTML('Update Password', 'Player not found.'));
         }
         if (user.pass !== oldPassword) {
-            return generatePlayerHTML(res, 401, 'Old password is incorrect.');
+            return res.status(401).send(generatePlayerHTML('Update Password', 'Old password is incorrect.'));
         }
         user.pass = newPassword;
         await user.save();
-        const html = generatePlayerHTML('Password Updated', 'Your password has been updated successfully.', { name: user.name, emailid: user.emailid });
-        res.status(200).send(html);
+        return res.status(200).send(generatePlayerHTML('Password Updated', 'Your password has been updated successfully.', { name: user.name, emailid: user.emailid }));
     } catch (err) {
-        generatePlayerHTML(res, 500, err.message || 'Error updating password.');
+        return res.status(500).send(generatePlayerHTML('Update Password', err.message || 'Error updating password.'));
     }
 });
 

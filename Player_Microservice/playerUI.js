@@ -80,12 +80,29 @@ function generatePlayerHTML(title, message, data = []) {
 // Generates a simple HTML error page
 function generateErrorHTML(res, statusCode, message) {
     const html = `
-        <div style="font-family: sans-serif; text-align: center; padding: 40px; background: #2A1A1A; color: #F5F5F5; border: 2px solid #F94144; border-radius: 16px;">
-            <h1 style="color: #F94144;">Error: ${statusCode}</h1>
-            <p>${message}</p>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Error ${statusCode}</title>
+        <style>
+            body { font-family: Arial, sans-serif; background: #f8d7da; color: #721c24; margin: 0; padding: 0; }
+            .container { max-width: 500px; margin: 80px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 32px; }
+            h1 { color: #dc3545; }
+            p { margin-top: 16px; }
+            a { color: #721c24; text-decoration: underline; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Error ${statusCode}</h1>
+            <p>${message || 'An unexpected error occurred.'}</p>
+            <p><a href="javascript:history.back()">Go Back</a></p>
         </div>
+    </body>
+    </html>
     `;
-    return res.status(statusCode).send(html);
+    res.status(statusCode).send(html);
 }
 
 module.exports = {

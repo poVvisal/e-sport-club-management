@@ -41,14 +41,14 @@ const ApiGatewayErrors = {
             401,
             'AUTHENTICATION REQUIRED',
             'You need a security token to access this area.',
-            'Trying to sneak in without a pass? That\'s a bold move, ah lop. It didn\'t work.'
+            "Trying to sneak in without a pass? That's a bold move, ah lop. It didn't work."
         ),
     invalidToken: () =>
         generateErrorHTML(
             403,
             'INVALID TOKEN',
             'The token you sent is expired, fake, or otherwise busted.',
-            'Is this token from a cereal box? Because it\'s not getting you anywhere. Try again.'
+            "Is this token from a cereal box? Because it's not getting you anywhere. Try again."
         ),
     unauthorizedRole: (userRole, requiredRole) =>
         generateErrorHTML(
@@ -57,12 +57,13 @@ const ApiGatewayErrors = {
             `Your clearance level is '${userRole}', but this area requires '${requiredRole}'.`,
             'This is the VIP section, not general admission. Nice try, though.'
         ),
+    // --- THIS IS THE PART I CHANGED ---
     notFound: () =>
         generateErrorHTML(
-            404,
-            'NOT FOUND',
-            'The resource you are looking for does not exist.',
-            'Lost? Maybe check the map next time.'
+            '404',
+            'ARE YOU LOST?',
+            "This route doesn't exist. Check the URL, my dude.",
+            "You've wandered so far off the path, you might need a GPS to find your way back to reality."
         ),
     internalError: (errMsg = 'Something went wrong on the server.') =>
         generateErrorHTML(
@@ -75,5 +76,5 @@ const ApiGatewayErrors = {
 
 module.exports = {
     generateErrorHTML,
-    ApiGatewayErrors
+    ApiGatewayErrors,
 };

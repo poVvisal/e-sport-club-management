@@ -1,4 +1,4 @@
-require('dotenv').config()
+require('dotenv').config();
 
 const express = require('express');
 const app = express();
@@ -11,7 +11,7 @@ const dbconnect = require('./dbconnect.js');
 const ScheduleModel = require('./schedule_schema.js');
 const VodModel = require('./vod_schema.js');
 const PersonModel = require('./person_schema.js');
-const UI = require('./coachHtml.js');
+const UI = { generateCoachHTML, generateScheduleTableHTML } = require('./coachHtml.js');
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -24,9 +24,9 @@ function uniqueid(min, max) {
 function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
-    if (!token) return res.status(401).send(UI('AUTH ERROR', 'No token provided.', null));
+    if (!token) return res.status(401).send(UI.generateCoachHTML('AUTH ERROR', 'No token provided.', null));
     jwt.verify(token, JWT_SECRET, (err, user) => {
-        if (err) return res.status(403).send(UI('AUTH ERROR', 'Invalid token.', null));
+        if (err) return res.status(403).send(UI.generateCoachHTML('AUTH ERROR', 'Invalid token.', null));
         req.user = user;
         next();
     });
@@ -57,27 +57,29 @@ app.post('/schedule', async (req, res) => {
             game
         });
         const doc = await newMatch.save();
-        const html = UI('MATCH SCHEDULED!', 'Good call, Coach. The new match is on the books and the team is ready.', doc);
+        const html = UI.generateCoachHTML('MATCH SCHEDULED!', 'Good call, Coach. The new match is on the books and the team is ready.', doc);
         res.status(201).send(html);
     } catch (err) {
         res.status(500).send({ message: err.message });
     }
 });
 
-// GET /schedule - Get all scheduled matches
+// GET /schedule - Get all scheduled matches (improved)
 app.get('/schedule', async (req, res) => {
-    console.log("FETCHING ALL SCHEDULED MATCHES");
+    console.log("FETCHING MATCH SCHEDULE");
     try {
-        const matches = await ScheduleModel.find({}, { __v: 0, _id: 0 });
-        if (matches.length === 0) {
-            return res.status(404).send({ message: "No matches scheduled yet." });
-        }
-        const html = UI('SCHEDULED MATCHES', 'Here are the matches you have scheduled, Coach. Let\'s get ready to rumble!', matches);
+        const matches = await ScheduleModel.find().sort({ matchDate: 1 });
+        const html = UI.generateScheduleTableHTML(
+            'Scheduled Matches',
+            "Here are the upcoming battles, Coach. Let's get ready to rumble!",
+            matches
+        );
         res.status(200).send(html);
     } catch (err) {
-        res.status(500).send({ message: err.message || 'Error fetching matches' });
+        res.status(500).send(UI.generateCoachHTML('Error', err.message || 'Error fetching schedule', null));
     }
 });
+
 // GET /schedule/:matchId - Get details of a specific match by matchId
 app.get('/schedule/:matchId', async (req, res) => {
     const matchId = parseInt(req.params.matchId);
@@ -87,10 +89,10 @@ app.get('/schedule/:matchId', async (req, res) => {
         if (!match) {
             return res.status(404).send({ message: `No match found with ID ${matchId}` });
         }
-        const html = UI(`MATCH DETAILS FOR ID ${matchId}`, 'Here are the details for your match, Coach. Let\'s strategize!', match);
+        const html = UI.generateCoachHTML(`MATCH DETAILS FOR ID ${matchId}`, 'Here are the details for your match, Coach. Let\'s strategize!', match);
         res.status(200).send(html);
     } catch (err) {
-        res.status(500).send({ message: err.message || 'Error fetching match details' });
+        res.status(500).send(UI.generateCoachHTML('Error', err.message || 'Error fetching match details', null));
     }
 });
 
@@ -104,10 +106,10 @@ app.post('/assignvod', async (req, res) => {
             assignedToPlayerEmail: req.body.playerEmail
         });
         const doc = await newVod.save();
-        const html = UI('VOD ASSIGNED!', 'Time for some homework. This VOD review will give us the edge.', doc);
+        const html = UI.generateCoachHTML('VOD ASSIGNED!', 'Time for some homework. This VOD review will give us the edge.', doc);
         res.status(201).send(html);
     } catch (err) {
-        res.status(500).send({ message: err.message });
+        res.status(500).send(UI.generateCoachHTML('Error', err.message || 'Error assigning VOD', null));
     }
 });
 
@@ -116,162 +118,170 @@ app.get('/roster', async (req, res) => {
     console.log("FETCHING TEAM ROSTER");
     try {
         const players = await PersonModel.find({ role: 'player' }, { pass: 0, __v: 0, _id: 0 });
-        const html = UI('TEAM ROSTER', 'Here are your legends, Coach. Ready for their next command.', players);
+        const html = UI.generateCoachHTML('TEAM ROSTER', 'Here are your legends, Coach. Ready for their next command.', players);
         res.status(200).send(html);
     } catch (err) {
-        res.status(500).send({ message: err.message || 'Error fetching roster' });
+        res.status(500).send(UI.generateCoachHTML('Error', err.message || 'Error fetching roster', null));
     }
 });
 
-
-
 // --- Admin-Only API Endpoints ---
-// These now live inside the Coach Service but will be protected by an 'admin' role check in the gateway.
-
 // GET /players - View a list of all players
-app.get('/players', (req, res) => {
+app.get('/players', async (req, res) => {
     console.log("ADMIN: Fetching all players");
-    PersonModel.find({ role: 'player' }, { pass: 0 })
-        .then(players => {
-            const html = UI('ALL PLAYERS', 'Here is the list of all players (Admin view).', players);
-            res.status(200).send(html);
-        })
-        .catch(err => res.status(500).send({ message: err.message }));
+    try {
+        const players = await PersonModel.find({ role: 'player' }, { pass: 0 });
+        const html = UI.generateCoachHTML('ALL PLAYERS', 'Here is the list of all players (Admin view).', players);
+        res.status(200).send(html); 
+    } catch (err) {
+        res.status(500).send(UI.generateCoachHTML('Error', err.message || 'Error fetching players', null));
+    }
 });
 
 // GET /coaches - View a list of all coaches
-app.get('/coaches', (req, res) => {
+app.get('/coaches', async (req, res) => {
     console.log("ADMIN: Fetching all coaches");
-    PersonModel.find({ role: 'coach' }, { pass: 0 })
-        .then(coaches => {
-            const html = UI('ALL COACHES', 'Here is the list of all coaches (Admin view).', coaches);
-            res.status(200).send(html);
-        })
-        .catch(err => res.status(500).send({ message: err.message }));
+    try {
+        const coaches = await PersonModel.find({ role: 'coach' }, { pass: 0 });
+        const html = UI.generateCoachHTML('ALL COACHES', 'Here is the list of all coaches (Admin view).', coaches);
+        res.status(200).send(html);
+    } catch (err) {
+        res.status(500).send(UI.generateCoachHTML('Error', err.message || 'Error fetching coaches', null));
+    }
 });
 
-// GET /schedules - View a list of all scheduled matches
-app.get('/schedules', (req, res) => {
-    console.log("ADMIN: Fetching all scheduled matches");
-    ScheduleModel.find()
-        .then(schedules => {
-            const html = UI('ALL SCHEDULES', 'Here are all scheduled matches (Admin view).', schedules);
-            res.status(200).send(html);
-        })
-        .catch(err => res.status(500).send({ message: err.message }));
-}); 
+// GET /schedules - View a list of all scheduled matches (ADMIN)
+app.get('/schedules', async (req, res) => {
+    console.log("FETCHING MATCH SCHEDULE");
+    try {
+        const matches = await ScheduleModel.find().sort({ matchDate: 1 });
+        const html = UI.generateScheduleTableHTML(
+            'Scheduled Matches',
+            "Here are the upcoming battles, Coach. Let's get ready to rumble!",
+            matches
+        );
+        res.status(200).send(html);
+    } catch (err) {
+        res.status(500).send(UI.generateCoachHTML('Error', err.message || 'Error fetching schedule', null));
+    }
+});
 
 // DELETE /user - Remove a player or coach by their email
-app.delete('/user', (req, res) => {
+app.delete('/user', async (req, res) => {
     const userEmail = req.body.email;
     if (!userEmail) {
-        const html = UI('DELETE USER', "User email is required.", null);
+        const html = UI.generateCoachHTML('DELETE USER', "User email is required.", null);
         return res.status(400).send(html);
     }
     console.log(`ADMIN: Deleting user with email: ${userEmail}`);
-    PersonModel.findOneAndDelete({ emailid: userEmail })
-        .then(deletedUser => {
-            if (!deletedUser) {
-                const html = UI('DELETE USER', "User not found.", null);
-                return res.status(404).send(html);
-            }
-            const html = UI('DELETE USER', `Successfully deleted user: ${deletedUser.name}`, deletedUser);
-            res.status(200).send(html);
-        })
-        .catch(err => res.status(500).send({ message: err.message }));
+    try {
+        const deletedUser = await PersonModel.findOneAndDelete({ emailid: userEmail });
+        if (!deletedUser) {
+            const html = UI.generateCoachHTML('DELETE USER', "User not found.", null);
+            return res.status(404).send(html);
+        }
+        const html = UI.generateCoachHTML('DELETE USER', `Successfully deleted user: ${deletedUser.name}`, deletedUser);
+        res.status(200).send(html);
+    } catch (err) {
+        res.status(500).send(UI.generateCoachHTML('Error', err.message || 'Error deleting user', null));
+    }
 });
 
 // ADMIN: Update a user's details by their custom ID
-app.put('/user/:id', (req, res) => {
+app.put('/user/:id', async (req, res) => {
     const userId = parseInt(req.params.id);
     console.log(`ADMIN: Updating user with ID: ${userId}`);
-    PersonModel.findOneAndUpdate({ id: userId }, { $set: req.body }, { new: true })
-        .then(updatedUser => {
-            if (!updatedUser) {
-                const html = UI('UPDATE USER', "User not found.", null);
-                return res.status(404).send(html);
-            }
-            const html = UI('UPDATE USER', "User updated successfully", updatedUser);
-            res.status(200).send(html);
-        })
-        .catch(err => res.status(500).send({ message: err.message }));
+    try {
+        const updatedUser = await PersonModel.findOneAndUpdate({ id: userId }, { $set: req.body }, { new: true });
+        if (!updatedUser) {
+            const html = UI.generateCoachHTML('UPDATE USER', "User not found.", null);
+            return res.status(404).send(html);
+        }
+        const html = UI.generateCoachHTML('UPDATE USER', "User updated successfully", updatedUser);
+        res.status(200).send(html);
+    } catch (err) {
+        res.status(500).send(UI.generateCoachHTML('Error', err.message || 'Error updating user', null));
+    }
 });
 
 // ADMIN: DELETE a user by their custom ID
-app.delete('/user/:id', (req, res) => {
+app.delete('/user/:id', async (req, res) => {
     const userId = parseInt(req.params.id);
     console.log(`ADMIN: Deleting user with ID: ${userId}`);
-    PersonModel.findOneAndDelete({ id: userId })
-        .then(deletedUser => {
-            if (!deletedUser) {
-                const html = UI('DELETE USER', "User not found.", null);
-                return res.status(404).send(html);
-            }
-            const html = UI('DELETE USER', `Successfully deleted user: ${deletedUser.name}`, deletedUser);
-            res.status(200).send(html);
-        })
-        .catch(err => res.status(500).send({ message: err.message }));
+    try {
+        const deletedUser = await PersonModel.findOneAndDelete({ id: userId });
+        if (!deletedUser) {
+            const html = UI.generateCoachHTML('DELETE USER', "User not found.", null);
+            return res.status(404).send(html);
+        }
+        const html = UI.generateCoachHTML('DELETE USER', `Successfully deleted user: ${deletedUser.name}`, deletedUser);
+        res.status(200).send(html);
+    } catch (err) {
+        res.status(500).send(UI.generateCoachHTML('Error', err.message || 'Error deleting user', null));
+    }
 });
 
 // ADMIN: Update a schedule's details by its custom matchId
-app.put('/schedule/:matchId', (req, res) => {
+app.put('/schedule/:matchId', async (req, res) => {
     const matchId = parseInt(req.params.matchId);
     console.log(`ADMIN: Updating schedule with matchID: ${matchId}`);
-    ScheduleModel.findOneAndUpdate({ matchId: matchId }, { $set: req.body }, { new: true })
-        .then(updatedSchedule => {
-            if (!updatedSchedule) {
-                const html = UI('UPDATE SCHEDULE', "Schedule not found.", null);
-                return res.status(404).send(html);
-            }
-            const html = UI('UPDATE SCHEDULE', "Schedule updated successfully", updatedSchedule);
-            res.status(200).send(html);
-        })
-        .catch(err => res.status(500).send({ message: err.message }));
+    try {
+        const updatedSchedule = await ScheduleModel.findOneAndUpdate({ matchId: matchId }, { $set: req.body }, { new: true });
+        if (!updatedSchedule) {
+            const html = UI.generateCoachHTML('UPDATE SCHEDULE', "Schedule not found.", null);
+            return res.status(404).send(html);
+        }
+        const html = UI.generateCoachHTML('UPDATE SCHEDULE', "Schedule updated successfully", updatedSchedule);
+        res.status(200).send(html);
+    } catch (err) {
+        res.status(500).send(UI.generateCoachHTML('Error', err.message || 'Error updating schedule', null));
+    }
 });
 
 // ADMIN: DELETE a schedule by its custom matchId
-app.delete('/schedule/:matchId', (req, res) => {
+app.delete('/schedule/:matchId', async (req, res) => {
     const matchId = parseInt(req.params.matchId);
     console.log(`ADMIN: Deleting schedule with matchID: ${matchId}`);
-    ScheduleModel.findOneAndDelete({ matchId: matchId })
-        .then(deletedSchedule => {
-            if (!deletedSchedule) {
-                const html = UI('DELETE SCHEDULE', "Schedule not found.", null);
-                return res.status(404).send(html);
-            }
-            const html = UI('DELETE SCHEDULE', `Successfully deleted schedule vs ${deletedSchedule.opponent}`, deletedSchedule);
-            res.status(200).send(html);
-        })
-        .catch(err => res.status(500).send({ message: err.message }));
+    try {
+        const deletedSchedule = await ScheduleModel.findOneAndDelete({ matchId: matchId });
+        if (!deletedSchedule) {
+            const html = UI.generateCoachHTML('DELETE SCHEDULE', "Schedule not found.", null);
+            return res.status(404).send(html);
+        }
+        const html = UI.generateCoachHTML('DELETE SCHEDULE', `Successfully deleted schedule vs ${deletedSchedule.opponent}`, deletedSchedule);
+        res.status(200).send(html);
+    } catch (err) {
+        res.status(500).send(UI.generateCoachHTML('Error', err.message || 'Error deleting schedule', null));
+    }
 });
 
 // Unified password update endpoint
 app.put('/update-password', authenticateToken, async (req, res) => {
     const { oldPassword, newPassword } = req.body;
     if (!req.user || !req.user.emailid || !req.user.role) {
-        return res.status(401).send(UI('UPDATE PASSWORD', 'Invalid user in token.', null));
+        return res.status(401).send(UI.generateCoachHTML('UPDATE PASSWORD', 'Invalid user in token.', null));
     }
     if (!oldPassword || !newPassword) {
-        return res.status(400).send(UI('UPDATE PASSWORD', 'Old and new password are required.', null));
+        return res.status(400).send(UI.generateCoachHTML('UPDATE PASSWORD', 'Old and new password are required.', null));
     }
     if (newPassword.length < 6) {
-        return res.status(400).send(UI('UPDATE PASSWORD', 'New password must be at least 6 characters.', null));
+        return res.status(400).send(UI.generateCoachHTML('UPDATE PASSWORD', 'New password must be at least 6 characters.', null));
     }
 
     try {
         const user = await PersonModel.findOne({ emailid: req.user.emailid, role: req.user.role });
         if (!user) {
-            return res.status(404).send(UI('UPDATE PASSWORD', `${req.user.role.charAt(0).toUpperCase() + req.user.role.slice(1)} not found.`, null));
+            return res.status(404).send(UI.generateCoachHTML('UPDATE PASSWORD', `${req.user.role.charAt(0).toUpperCase() + req.user.role.slice(1)} not found.`, null));
         }
         if (user.pass !== oldPassword) {
-            return res.status(401).send(UI('UPDATE PASSWORD', 'Old password is incorrect.', null));
+            return res.status(401).send(UI.generateCoachHTML('UPDATE PASSWORD', 'Old password is incorrect.', null));
         }
         user.pass = newPassword;
         await user.save();
-        const html = UI('UPDATE PASSWORD', 'Password updated successfully.', { name: user.name, emailid: user.emailid, role: user.role });
+        const html = UI.generateCoachHTML('UPDATE PASSWORD', 'Password updated successfully.', { name: user.name, emailid: user.emailid, role: user.role });
         res.status(200).send(html);
     } catch (err) {
-        res.status(500).send({ message: err.message });
+        res.status(500).send(UI.generateCoachHTML('Error', err.message || 'Error updating password', null));
     }
 });
 
@@ -279,23 +289,23 @@ app.put('/update-password', authenticateToken, async (req, res) => {
 app.put('/reset-password', authenticateToken, async (req, res) => {
     const { mobile, newPassword } = req.body;
     if (!req.user || !req.user.emailid || !req.user.role) {
-        return res.status(401).send(UI('RESET PASSWORD', 'Invalid user in token.', null));
+        return res.status(401).send(UI.generateCoachHTML('RESET PASSWORD', 'Invalid user in token.', null));
     }
     if (!mobile || !newPassword) {
-        return res.status(400).send(UI('RESET PASSWORD', 'Mobile number and new password are required.', null));
+        return res.status(400).send(UI.generateCoachHTML('RESET PASSWORD', 'Mobile number and new password are required.', null));
     }
 
     try {
         const user = await PersonModel.findOne({ emailid: req.user.emailid, mobile: mobile, role: req.user.role });
         if (!user) {
-            return res.status(404).send(UI('RESET PASSWORD', `${req.user.role.charAt(0).toUpperCase() + req.user.role.slice(1)} not found or mobile number does not match.`, null));
+            return res.status(404).send(UI.generateCoachHTML('RESET PASSWORD', `${req.user.role.charAt(0).toUpperCase() + req.user.role.slice(1)} not found or mobile number does not match.`, null));
         }
         user.pass = newPassword;
         await user.save();
-        const html = UI('RESET PASSWORD', 'Password reset successfully.', { name: user.name, emailid: user.emailid, role: user.role });
+        const html = UI.generateCoachHTML('RESET PASSWORD', 'Password reset successfully.', { name: user.name, emailid: user.emailid, role: user.role });
         res.status(200).send(html);
     } catch (err) {
-        res.status(500).send({ message: err.message });
+        res.status(500).send(UI.generateCoachHTML('Error', err.message || 'Error resetting password', null));
     }
 });
 
@@ -303,7 +313,7 @@ app.put('/reset-password', authenticateToken, async (req, res) => {
 app.get('/player-search', async (req, res) => {
     const { id, email } = req.query;
     if (!id && !email) {
-        const html = UI('PLAYER SEARCH', 'Provide either player ID or email.', null);
+        const html = UI.generateCoachHTML('PLAYER SEARCH', 'Provide either player ID or email.', null);
         return res.status(400).send(html);
     }
     let query = { role: 'player' };
@@ -312,13 +322,13 @@ app.get('/player-search', async (req, res) => {
     try {
         const player = await PersonModel.findOne(query, { pass: 0, __v: 0, _id: 0 });
         if (!player) {
-            const html = UI('PLAYER SEARCH', 'Player not found.', null);
+            const html = UI.generateCoachHTML('PLAYER SEARCH', 'Player not found.', null);
             return res.status(404).send(html);
         }
-        const html = UI('PLAYER SEARCH', 'Player found.', player);
+        const html = UI.generateCoachHTML('PLAYER SEARCH', 'Player found.', player);
         res.status(200).send(html);
     } catch (err) {
-        res.status(500).send({ message: err.message });
+        res.status(500).send(UI.generateCoachHTML('Error', err.message || 'Error fetching player', null));
     }
 });
 
@@ -326,7 +336,7 @@ app.get('/player-search', async (req, res) => {
 app.get('/coach-search', async (req, res) => {
     const { id, email } = req.query;
     if (!id && !email) {
-        const html = UI('COACH SEARCH', 'Provide either coach ID or email.', null);
+        const html = UI.generateCoachHTML('COACH SEARCH', 'Provide either coach ID or email.', null);
         return res.status(400).send(html);
     }
     let query = { role: 'coach' };
@@ -335,13 +345,29 @@ app.get('/coach-search', async (req, res) => {
     try {
         const coach = await PersonModel.findOne(query, { pass: 0, __v: 0, _id: 0 });
         if (!coach) {
-            const html = UI('COACH SEARCH', 'Coach not found.', null);
+            const html = UI.generateCoachHTML('COACH SEARCH', 'Coach not found.', null);
             return res.status(404).send(html);
         }
-        const html = UI('COACH SEARCH', 'Coach found.', coach);
+        const html = UI.generateCoachHTML('COACH SEARCH', 'Coach found.', coach);
         res.status(200).send(html);
     } catch (err) {
-        res.status(500).send({ message: err.message });
+        res.status(500).send(UI.generateCoachHTML('Error', err.message || 'Error fetching coach', null));
+    }
+});
+
+// GET /admin/schedule - Admin fetches all scheduled matches
+app.get('/admin/schedule', async (req, res) => {
+    console.log("ADMIN: Fetching all scheduled matches");
+    try {
+        const matches = await ScheduleModel.find().sort({ matchDate: 1 });
+        const html = generateScheduleTableHTML(
+            'All Scheduled Matches',
+            "Admin view: Here are all scheduled matches.",
+            matches
+        );
+        res.status(200).send(html); 
+    } catch (err) {
+        res.status(500).send(UI.generateCoachHTML('Error', err.message || 'Error fetching schedule', null));
     }
 });
 

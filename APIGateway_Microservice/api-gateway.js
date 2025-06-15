@@ -8,7 +8,7 @@ const targets = require('./target.js');
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
-const { apiUI } = require('./apiUI.js');
+const { generateErrorHTML, ApiGatewayErrors } = require('./apiUI.js');
 
 // --- MIDDLEWARE 1: AUTHENTICATE THE TOKEN (NOW WITH HTML ERRORS) ---
 function authToken(req, res, next) {
