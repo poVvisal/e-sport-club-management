@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Sport Club Management System Report | Hyper Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Swiper.js for the sliders -->
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
+    <!-- Animate On Scroll (AOS) for animations -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Mermaid.js for diagrams -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0a0a1a;
+            color: #e0e0e0;
+        }
+        #background-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        .rajdhani { font-family: 'Rajdhani', sans-serif; }
+        .glow-border {
+            border-color: #2563eb;
+            box-shadow: 0 0 15px rgba(37, 99, 235, 0.4);
+        }
+        .glow-text {
+            color: #60a5fa;
+            text-shadow: 0 0 10px rgba(96, 165, 250, 0.5);
+        }
+        .section-title {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-align: center;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid #2563eb;
+            padding-bottom: 0.5rem;
+            display: inline-block;
+        }
+        .tab-button { transition: all 0.3s ease; }
+        .tab-button.active {
+            background-color: #2563eb;
+            color: #ffffff;
+            box-shadow: 0 0 15px rgba(37, 99, 235, 0.5);
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        /* Swiper Slider Styles */
+        .swiper { width: 100%; height: 100%; }
+        .swiper-slide {
+            text-align: center;
+            font-size: 18px;
+            background: #0f172a;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            border: 1px solid #334155;
+        }
+        .swiper-slide img {
+            display: block;
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+        }
+        .swiper-slide .slide-caption {
+            padding: 1rem;
+            background-color: #1e293b;
+            color: #cbd5e1;
+            font-size: 0.9rem;
+            width: 100%;
+            min-height: 60px;
+        }
+        .swiper-button-next, .swiper-button-prev {
+            color: #60a5fa;
+            transform: scale(0.7);
+        }
+        .swiper-pagination-bullet-active { background: #60a5fa; }
+
+        .modal {
+            display: none; position: fixed; z-index: 100;
+            left: 0; top: 0; width: 100%; height: 100%;
+            overflow: auto; background-color: rgba(0,0,0,0.9);
+            justify-content: center; align-items: center;
+        }
+        .modal-content {
+            margin: auto; display: block;
+            max-width: 80vw; max-height: 90vh;
+        }
+        .close {
+            position: absolute; top: 15px; right: 35px;
+            color: #f1f1f1; font-size: 40px; font-weight: bold;
+            transition: 0.3s; cursor: pointer;
+        }
+        pre.mermaid {
+            width: 100%;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-300">
+    <canvas id="background-animation"></canvas>
+
+    <header class="bg-slate-900/70 backdrop-blur-lg sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold rajdhani text-white">E-SPORT CLUB MANAGEMENT</h1>
+            <div class="hidden md:flex space-x-6">
+                <a href="#highlights" class="hover:text-blue-400 transition">Highlights</a>
+                <a href="#architecture" class="hover:text-blue-400 transition">Architecture</a>
+                <a href="#api" class="hover:text-blue-400 transition">API Showcase</a>
+                <a href="https://github.com/poVvisal/e-sport-club-management.git" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition">GitHub Repo</a>
+            </div>
+             <button id="mobile-menu-button" class="md:hidden text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" /></svg>
+            </button>
+        </nav>
+        <div id="mobile-menu" class="hidden md:hidden px-6 pb-4">
+             <a href="#highlights" class="block py-2 hover:text-blue-400 transition">Highlights</a>
+             <a href="#architecture" class="block py-2 hover:text-blue-400 transition">Architecture</a>
+             <a href="#api" class="block py-2 hover:text-blue-400 transition">API Showcase</a>
+             <a href="https://github.com/poVvisal/e-sport-club-management.git" target="_blank" class="block mt-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition text-center">GitHub Repo</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-12">
+        <!-- Hero Section -->
+        <section id="introduction" class="mb-24 text-center" data-aos="fade-up">
+            <h2 class="text-4xl md:text-6xl font-bold rajdhani glow-text uppercase tracking-wider mb-4">E-Sport Club Management System</h2>
+            <p class="max-w-4xl mx-auto text-lg leading-relaxed text-slate-400">
+                A robust microservices-based platform designed to streamline operations for e-sports organizations, from player management to match scheduling and performance analysis.
+            </p>
+        </section>
+
+        <!-- Project Highlights Section -->
+        <section id="highlights" class="mb-24">
+             <div class="text-center mb-12">
+                <h2 class="section-title" data-aos="fade-up">Project Highlights</h2>
+            </div>
+            <div class="max-w-5xl mx-auto grid md:grid-cols-3 gap-8">
+                <div class="bg-slate-800/50 p-6 rounded-xl border border-slate-700 text-center" data-aos="fade-up" data-aos-delay="100">
+                    <h3 class="text-xl font-bold rajdhani glow-text mb-3">Microservice Architecture</h3>
+                    <p class="text-slate-400">Deployed on AWS EC2, ensuring scalability, fault tolerance, and independent service management for ultimate reliability.</p>
+                </div>
+                <div class="bg-slate-800/50 p-6 rounded-xl border border-slate-700 text-center" data-aos="fade-up" data-aos-delay="200">
+                    <h3 class="text-xl font-bold rajdhani glow-text mb-3">Role-Based Access Control</h3>
+                    <p class="text-slate-400">Secure JWT-based authentication protects over 20 API endpoints, granting specific permissions to Players, Coaches, and Admins.</p>
+                </div>
+                <div class="bg-slate-800/50 p-6 rounded-xl border border-slate-700 text-center" data-aos="fade-up" data-aos-delay="300">
+                    <h3 class="text-xl font-bold rajdhani glow-text mb-3">Full CRUD Functionality</h3>
+                    <p class="text-slate-400">Comprehensive management of users, schedules, and VOD reviews, with a flexible MongoDB backend.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- System Architecture Section -->
+        <section id="architecture" class="mb-24">
+            <div class="text-center mb-12">
+                <h2 class="section-title" data-aos="fade-up">System Architecture</h2>
+            </div>
+            <div class="space-y-16">
+                <div data-aos="fade-up">
+                    <h3 class="text-2xl font-bold text-center mb-6 rajdhani glow-text">High-Level Architecture</h3>
+                    <div class="p-4 bg-slate-800 rounded-lg border border-slate-700 flex justify-center glow-border">
+                        <pre class="mermaid">
+graph TB
+    %% Client Layer
+    Client[🖥️ Client Applications<br/>Web Browser / Mobile App]
+    
+    %% API Gateway
+    Gateway[🚪 API Gateway<br/>Port: 4000<br/>Request Routing & Load Balancing]
+    
+    %% Microservices
+    Auth[🔐 Registration & Auth Service<br/>Port: 5001<br/>User Management & JWT]
+    Coach[👨‍💼 Coach Service<br/>Port: 5002<br/>Team & Schedule Management]
+    Player[🎮 Player Service<br/>Port: 5003<br/>VOD Reviews & Match Info]
+    
+    %% Database Layer
+    MongoDB[(🗄️ MongoDB<br/>Database<br/>Collections)]
+    
+    %% External Services
+    JWT[🔑 JWT Token<br/>Authentication]
+    PM2[⚙️ PM2<br/>Process Manager]
+    Docker[🐳 Docker<br/>Containerization]
+    
+    %% Client to Gateway
+    Client -->|HTTP Requests| Gateway
+    
+    %% Gateway to Services
+    Gateway -->|/reg/* /auth/*| Auth
+    Gateway -->|/coach/*| Coach
+    Gateway -->|/player/*| Player
+    Gateway -->|/admin/*| Coach
+    
+    %% Services to Database
+    Auth -->|User Data| MongoDB
+    Coach -->|Schedules & Teams| MongoDB
+    Player -->|VOD Reviews| MongoDB
+    
+    %% Authentication Flow
+    Auth -.->|Generate/Verify| JWT
+    Gateway -.->|Validate| JWT
+    Coach -.->|Protected Routes| JWT
+    Player -.->|Protected Routes| JWT
+    
+    %% Infrastructure
+    PM2 -.->|Manages| Gateway
+    PM2 -.->|Manages| Auth
+    PM2 -.->|Manages| Coach
+    PM2 -.->|Manages| Player
+    
+    Docker -.->|Containerizes| Gateway
+    Docker -.->|Containerizes| Auth
+    Docker -.->|Containerizes| Coach
+    Docker -.->|Containerizes| Player
+    Docker -.->|Containerizes| MongoDB
+    
+    %% Database Collections
+    MongoDB --> PersonColl[👥 person_collection<br/>Users, Coaches, Admins]
+    MongoDB --> ScheduleColl[📅 schedule_collection<br/>Match Schedules]
+    MongoDB --> VODColl[🎥 vod_collection<br/>Video Reviews]
+    
+    %% Styling
+    classDef clientStyle fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
+    classDef gatewayStyle fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000
+    classDef serviceStyle fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef dbStyle fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+    classDef infraStyle fill:#fce4ec,stroke:#880e4f,stroke-width:2px,color:#000
+    classDef collectionStyle fill:#f1f8e9,stroke:#33691e,stroke-width:1px,color:#000
+    
+    class Client clientStyle
+    class Gateway gatewayStyle
+    class Auth,Coach,Player serviceStyle
+    class MongoDB dbStyle
+    class JWT,PM2,Docker infraStyle
+    class PersonColl,ScheduleColl,VODColl collectionStyle
+                        </pre>
+                    </div>
+                </div>
+                <div data-aos="fade-up">
+                    <h3 class="text-2xl font-bold text-center mb-6 rajdhani glow-text">API Request Flow Diagram</h3>
+                    <div class="p-4 bg-slate-800 rounded-lg border border-slate-700 flex justify-center glow-border">
+                         <pre class="mermaid">
+sequenceDiagram
+    participant C as 🖥️ Client
+    participant G as 🚪 API Gateway
+    participant A as 🔐 Auth Service
+    participant Coach as 👨‍💼 Coach Service
+    participant P as 🎮 Player Service
+    participant DB as 🗄️ MongoDB
+    
+    Note over C,DB: User Registration Flow
+    C->>G: POST /reg/player
+    G->>A: Forward registration request
+    A->>DB: Store user data
+    DB-->>A: User created
+    A-->>G: Registration success
+    G-->>C: User registered
+    
+    Note over C,DB: Authentication Flow
+    C->>G: POST /auth/login
+    G->>A: Forward login request
+    A->>DB: Validate credentials
+    DB-->>A: User found
+    A-->>G: JWT Token
+    G-->>C: Login successful + JWT
+    
+    Note over C,DB: Protected Resource Access
+    C->>G: GET /coach/roster + JWT
+    G->>G: Validate JWT
+    G->>Coach: Forward request
+    Coach->>DB: Get roster data
+    DB-->>Coach: Roster information
+    Coach-->>G: Roster response
+    G-->>C: Team roster data
+    
+    Note over C,DB: VOD Assignment Flow
+    C->>G: POST /coach/assignvod + JWT
+    G->>Coach: Forward VOD assignment
+    Coach->>DB: Create VOD assignment
+    DB-->>Coach: Assignment created
+    Coach->>P: Notify player service
+    Coach-->>G: Assignment success
+    G-->>C: VOD assigned
+                         </pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- API Showcase Section -->
+        <section id="api" class="mb-16">
+            <div class="text-center mb-12" data-aos="fade-up">
+                 <h2 class="section-title">API Showcase</h2>
+            </div>
+
+            <div id="tabs" class="flex flex-wrap justify-center gap-2 mb-8" data-aos="fade-up">
+                <button class="tab-button bg-slate-800 border border-slate-700 text-slate-300 py-2 px-4 rounded-md hover:bg-slate-700 active" data-tab="registration">Registration</button>
+                <button class="tab-button bg-slate-800 border border-slate-700 text-slate-300 py-2 px-4 rounded-md hover:bg-slate-700" data-tab="auth">Authentication</button>
+                <button class="tab-button bg-slate-800 border border-slate-700 text-slate-300 py-2 px-4 rounded-md hover:bg-slate-700" data-tab="coach">Coach</button>
+                <button class="tab-button bg-slate-800 border border-slate-700 text-slate-300 py-2 px-4 rounded-md hover:bg-slate-700" data-tab="admin">Admin</button>
+                <button class="tab-button bg-slate-800 border border-slate-700 text-slate-300 py-2 px-4 rounded-md hover:bg-slate-700" data-tab="player">Player</button>
+            </div>
+
+            <div id="tab-content-container" class="max-w-7xl mx-auto" data-aos="fade-up">
+                
+                <!-- Swiper for Registration -->
+                <div id="registration" class="tab-content active">
+                    <div class="swiper swiper-registration">
+                        <div class="swiper-wrapper">
+                            <div class="swiper-slide"><img src="E-Sport Club Management System_files/image006.gif" alt="Dbconnect code"><div class="slide-caption">Database Connection Logic</div></div>
+                            <div class="swiper-slide"><img src="E-Sport Club Management System_files/image008.gif" alt="Person_Schema code"><div class="slide-caption">User Schema for MongoDB</div></div>
+                            <div class="swiper-slide"><img src="E-Sport Club Management System_files/image010.gif" alt="vod_Schema code"><div class="slide-caption">VOD Schema for MongoDB</div></div>
+                            <div class="swiper-slide"><img src="E-Sport Club Management System_files/image012.gif" alt="Register API code"><div class="slide-caption">Registration Endpoint Logic</div></div>
+                            <div class="swiper-slide"><img src="E-Sport Club Management System_files/image014.gif" alt="Register a coach"><div class="slide-caption">API Test: Registering a new Coach</div></div>
+                            <div class="swiper-slide"><img src="E-Sport Club Management System_files/image016.gif" alt="Register a player"><div class="slide-caption">API Test: Registering a new Player</div></div>
+                            <div class="swiper-slide"><img src="E-Sport Club Management System_files/image018.gif" alt="Register an admin"><div class="slide-caption">API Test: Registering a new Admin</div></div>
+                            <div class="swiper-slide"><img src="E-Sport Club Management System_files/image020.gif" alt="Handling missed entry"><div class="slide-caption">Error Handling: Invalid Input</div></div>
+                            <div class="swiper-slide"><img src="E-Sport Club Management System_files/image022.gif" alt="Registration in MongoDB"><div class="slide-caption">Database View: New Users Created</div></div>
+                        </div>
+                        <div class="swiper-button-next"></div><div class="swiper-button-prev"></div><div class="swiper-pagination"></div>
+                    </div>
+                </div>
+
+                <!-- Swiper for Auth -->
+                <div id="auth" class="tab-content">
+                     <div class="swiper swiper-auth">
+                        <div class="swiper-wrapper">
+                            <div class="swiper-slide"><img src="E-Sport Club Management System_files/image024.gif" alt="Authentication Service Code"><div class="slide-caption">Authentication Service Logic</div></div>
+                            <div class="swiper-slide"><img src="E-Sport Club Management System_files/image026.gif" alt="Coach Login"><div class="slide-caption">API Test: Successful Coach Login</div></div>
+                            <div class="swiper-slide"><img src="E-Sport Club Management System_files/image028.gif" alt="Admin Login"><div class="slide-caption">API Test: Successful Admin Login</div></div>
+                            <div class="swiper-slide"><img src="E-Sport Club Management System_files/image030.gif" alt="Player login"><div class="slide-caption">API Test: Successful Player Login</div></div>
+                            <div class="swiper-slide"><img src="E-Sport Club Management System_files/image032.gif" alt="Incorrect Login"><div class="slide-caption">Error Handling: Invalid Credentials</div></div>
+                        </div>
+                        <div class="swiper-button-next"></div><div class="swiper-button-prev"></div><div class="swiper-pagination"></div>
+                    </div>
+                </div>
+
+                <!-- Swiper for Coach -->
+                <div id="coach" class="tab-content">
+                     <div class="swiper swiper-coach">
+                        <div class="swiper-wrapper">
+                            <div class="swiper-slide"><img src="E-Sport Club Management System_files/image034.gif" alt="Coach Post Schedule Code"><div class="slide-caption">Logic for Creating a New Schedule</div></div>
+                            <div class="swiper-slide"><img src="E-Sport Club Management System_files/image036.gif" alt="Coach Post Schedule Result"><div class="slide-caption">API Test: Coach Posts a New Match</div></div>
+                            <div class="swiper-slide"><img src="E-Sport Club Management System_files/image038.gif" alt="Schedule in MongoDB"><div class="slide-caption">Database View: New Schedule Created</div></div>
+                            <div class="swiper-slide"><img src="E-Sport Club Management System_files/image040.gif" alt="Coach Assign VOD"><div class="slide-caption">API Test: Coach Assigns a VOD Review</div></div>
+                            <div class="swiper-slide"><img src="E-Sport Club Management System_files/image042.gif" alt="VOD in MongoDB"><div class="slide-caption">Database View: New VOD Assignment</div></div>
+                            <div class="swiper-slide"><img src="E-Sport Club Management System_files/image044.gif" alt="Coach View Roster Code"><div class="slide-caption">Logic for Fetching Team Roster</div></div>
+                            <div class="swiper-slide"><img src="E-Sport Club Management System_files/image046.gif" alt="Coach View Roster Result"><div class="slide-caption">API Test: Coach Views Team Roster</div></div>
+                            <div class="swiper-slide"><img src="E-Sport Club Management System_files/image048.gif" alt="Roster in MongoDB"><div class="slide-caption">Database View: Team Roster Data</div></div>
+                        </div>
+                        <div class="swiper-button-next"></div><div class="swiper-button-prev"></div><div class="swiper-pagination"></div>
+                    </div>
+                </div>
+
+                <!-- Swiper for Admin -->
+                <div id="admin" class="tab-content">
+                    <div class="swiper swiper-admin">
+                        <div class="swiper-wrapper">
+                           <div class="swiper-slide"><img src="E-Sport Club Management System_files/image050.gif" alt="Admin Delete User Code"><div class="slide-caption">Logic for Deleting a User</div></div>
+                            <div class="swiper-slide"><img src="E-Sport Club Management System_files/image052.gif" alt="Admin Remove Player"><div class="slide-caption">API Test: Admin Deletes a Player</div></div>
+                            <div class="swiper-slide"><img src="E-Sport Club Management System_files/image054.gif" alt="Player Removed in DB"><div class="slide-caption">Database View: Player Removed</div></div>
+                            <div class="swiper-slide"><img src="E-Sport Club Management System_files/image056.gif" alt="Unauthorized delete by coach"><div class="slide-caption">Security: Coach Unauthorized to Delete</div></div>
+                            <div class="swiper-slide"><img src="E-Sport Club Management System_files/image058.gif" alt="Unauthorized schedule post by admin"><div class="slide-caption">Security: Admin Unauthorized to Create Schedule</div></div>
+                            <div class="swiper-slide"><img src="E-Sport Club Management System_files/image060.gif" alt="Admin Update User Code"><div class="slide-caption">Logic for Updating User Info</div></div>
+                            <div class="swiper-slide"><img src="E-Sport Club Management System_files/image062.jpg" alt="Player info before update"><div class="slide-caption">Database View: Player Data Before Update</div></div>
+                            <div class="swiper-slide"><img src="E-Sport Club Management System_files/image064.gif" alt="Admin Update Player Result"><div class="slide-caption">API Test: Admin Updates Player Info</div></div>
+                            <div class="swiper-slide"><img src="E-Sport Club Management System_files/image066.gif" alt="Player Updated in DB"><div class="slide-caption">Database View: Player Info Updated</div></div>
+                        </div>
+                        <div class="swiper-button-next"></div><div class="swiper-button-prev"></div><div class="swiper-pagination"></div>
+                    </div>
+                </div>
+
+                <!-- Swiper for Player -->
+                <div id="player" class="tab-content">
+                    <div class="swiper swiper-player">
+                        <div class="swiper-wrapper">
+                            <div class="swiper-slide"><img src="E-Sport Club Management System_files/image068.gif" alt="Player View Schedules Code"><div class="slide-caption">Logic for Fetching Schedules</div></div>
+                            <div class="swiper-slide"><img src="E-Sport Club Management System_files/image070.gif" alt="Player View Schedules Result"><div class="slide-caption">API Test: Player Views All Schedules</div></div>
+                            <div class="swiper-slide"><img src="E-Sport Club Management System_files/image072.gif" alt="Player View Match by ID"><div class="slide-caption">API Test: Player Views Specific Match by ID</div></div>
+                            <div class="swiper-slide"><img src="E-Sport Club Management System_files/image074.gif" alt="Invalid Match ID Search"><div class="slide-caption">Error Handling: Match Not Found</div></div>
+                            <div class="swiper-slide"><img src="E-Sport Club Management System_files/image076.gif" alt="Player Update Password Code"><div class="slide-caption">Logic for Updating Password</div></div>
+                            <div class="swiper-slide"><img src="E-Sport Club Management System_files/image078.gif" alt="Player Update Password Result"><div class="slide-caption">API Test: Player Successfully Updates Password</div></div>
+                            <div class="swiper-slide"><img src="E-Sport Club Management System_files/image080.gif" alt="Password Updated in DB"><div class="slide-caption">Database View: Password Hash Updated</div></div>
+                            <div class="swiper-slide"><img src="E-Sport Club Management System_files/image082.gif" alt="Wrong old password"><div class="slide-caption">Error Handling: Incorrect Old Password</div></div>
+                            <div class="swiper-slide"><img src="E-Sport Club Management System_files/image084.gif" alt="Update password no token"><div class="slide-caption">Security: Authentication Required</div></div>
+                            <div class="swiper-slide"><img src="E-Sport Club Management System_files/image086.gif" alt="Update password wrong role"><div class="slide-caption">Security: Authorization Failed for Wrong Role</div></div>
+                            <div class="swiper-slide"><img src="E-Sport Club Management System_files/image088.gif" alt="Player Review VOD Code"><div class="slide-caption">Logic for Submitting a VOD Review</div></div>
+                            <div class="swiper-slide"><img src="E-Sport Club Management System_files/image090.jpg" alt="Player Review VOD Result"><div class="slide-caption">API Test: Player Submits VOD Review</div></div>
+                            <div class="swiper-slide"><img src="E-Sport Club Management System_files/image092.gif" alt="VOD Reviewed in DB"><div class="slide-caption">Database View: VOD Marked as Reviewed</div></div>
+                            <div class="swiper-slide"><img src="E-Sport Club Management System_files/image094.gif" alt="Unauthorized VOD Review"><div class="slide-caption">Security: Wrong User Tries to Review VOD</div></div>
+                            <div class="swiper-slide"><img src="E-Sport Club Management System_files/image096.gif" alt="Final Architecture Diagram"><div class="slide-caption">Final Detailed System Architecture</div></div>
+                        </div>
+                        <div class="swiper-button-next"></div><div class="swiper-button-prev"></div><div class="swiper-pagination"></div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <div id="imageModal" class="modal">
+        <span class="close">&times;</span>
+        <img class="modal-content" id="modalImage">
+    </div>
+    
+    <footer class="text-center py-6 bg-slate-900 border-t border-slate-800">
+        <p class="text-slate-500">E-Sport Club Management System Report | Generated for poVvisal</p>
+    </footer>
+    
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+    <script>
+        // --- INITIALIZE MERMAID ---
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                background: '#0f172a',
+                primaryColor: '#1e293b',
+                primaryTextColor: '#e0e0e0',
+                lineColor: '#60a5fa',
+                textColor: '#cbd5e1',
+                nodeBorder: '#2563eb',
+                mainBkg: '#0f172a',
+                actorBkg: '#1e293b',
+                actorBorder: '#60a5fa',
+                noteBkgColor: '#0a0a1a',
+                noteTextColor: '#e0e0e0',
+                noteBorderColor: '#334155'
+            }
+        });
+
+        // --- INITIALIZE AOS ---
+        AOS.init({
+            duration: 800,
+            once: true,
+        });
+
+        // --- BACKGROUND PARTICLE ANIMATION ---
+        const canvas = document.getElementById('background-animation');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = document.body.scrollHeight; // Make canvas full page height
+
+        let particlesArray;
+        
+        class Particle {
+            constructor(x, y, directionX, directionY, size, color) {
+                this.x = x; this.y = y; this.directionX = directionX;
+                this.directionY = directionY; this.size = size; this.color = color;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
+                ctx.fillStyle = 'rgba(37, 99, 235, 0.2)';
+                ctx.fill();
+            }
+            update() {
+                if (this.x > canvas.width || this.x < 0) { this.directionX = -this.directionX; }
+                if (this.y > canvas.height || this.y < 0) { this.directionY = -this.directionY; }
+                this.x += this.directionX; this.y += this.directionY;
+                this.draw();
+            }
+        }
+        
+        function initParticles() {
+            particlesArray = [];
+            let numberOfParticles = (canvas.height * canvas.width) / 9000;
+            for (let i = 0; i < numberOfParticles; i++) {
+                let size = (Math.random() * 2) + 1;
+                let x = (Math.random() * ((innerWidth - size * 2) - (size * 2)) + size * 2);
+                let y = (Math.random() * ((innerHeight - size * 2) - (size * 2)) + size * 2);
+                let directionX = (Math.random() * .4) - 0.2;
+                let directionY = (Math.random() * .4) - 0.2;
+                particlesArray.push(new Particle(x, y, directionX, directionY, size, '#2563eb'));
+            }
+        }
+
+        function animateParticles() {
+            requestAnimationFrame(animateParticles);
+            ctx.clearRect(0,0,innerWidth, innerHeight);
+            for (let i = 0; i < particlesArray.length; i++) { particlesArray[i].update(); }
+            connect();
+        }
+
+        function connect() {
+            let opacityValue = 1;
+            for (let a = 0; a < particlesArray.length; a++) {
+                for (let b = a; b < particlesArray.length; b++) {
+                    let distance = ((particlesArray[a].x - particlesArray[b].x) * (particlesArray[a].x - particlesArray[b].x))
+                                 + ((particlesArray[a].y - particlesArray[b].y) * (particlesArray[a].y - particlesArray[b].y));
+                    if (distance < (canvas.width/7) * (canvas.height/7)) {
+                        opacityValue = 1 - (distance/20000);
+                        ctx.strokeStyle = 'rgba(60, 100, 250,' + opacityValue + ')';
+                        ctx.lineWidth = 1;
+                        ctx.beginPath(); ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                        ctx.lineTo(particlesArray[b].x, particlesArray[b].y); ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        window.addEventListener('resize', function() {
+            canvas.width = innerWidth;
+            canvas.height = document.body.scrollHeight;
+            initParticles();
+        });
+        
+        initParticles();
+        animateParticles();
+
+        // --- UI SCRIPT ---
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        mobileMenuButton.addEventListener('click', () => { mobileMenu.classList.toggle('hidden'); });
+
+        // Tabs functionality
+        const tabs = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const targetId = tab.dataset.tab;
+                const target = document.getElementById(targetId);
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                tabContents.forEach(content => content.classList.remove('active'));
+                target.classList.add('active');
+                // Re-init swiper on tab change to fix rendering issues
+                swipers[targetId].update();
+            });
+        });
+
+        // Initialize all Swipers
+        const swiperOptions = {
+            loop: true,
+            pagination: { el: '.swiper-pagination', clickable: true },
+            navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev' },
+            keyboard: { enabled: true },
+        };
+        
+        const swipers = {
+            registration: new Swiper('.swiper-registration', swiperOptions),
+            auth: new Swiper('.swiper-auth', swiperOptions),
+            coach: new Swiper('.swiper-coach', swiperOptions),
+            admin: new Swiper('.swiper-admin', swiperOptions),
+            player: new Swiper('.swiper-player', swiperOptions)
+        };
+
+
+        // Image Modal functionality for Swiper slides
+        const modal = document.getElementById("imageModal");
+        const modalImg = document.getElementById("modalImage");
+        const swiperImages = document.querySelectorAll(".swiper-slide img");
+        const span = document.getElementsByClassName("close")[0];
+
+        swiperImages.forEach(img => {
+            img.onclick = function(){
+                modal.style.display = "flex";
+                modalImg.src = this.src;
+                modalImg.alt = this.alt;
+            }
+        });
+
+        span.onclick = function() { modal.style.display = "none"; }
+        modal.onclick = function(event) { if (event.target == modal) { modal.style.display = "none"; } }
+
+    </script>
+</body>
+</html>
