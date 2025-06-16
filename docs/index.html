@@ -13,6 +13,9 @@
     <!-- Mermaid.js for diagrams -->
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
     <style>
+        :root {
+            --glow-color: rgba(37, 99, 235, 0.7);
+        }
         body {
             font-family: 'Inter', sans-serif;
             background-color: #0a0a1a;
@@ -58,85 +61,94 @@
         .tab-button.active, .tab-button:hover {
             background-color: #2563eb;
             color: #ffffff;
-            box-shadow: 0 0 15px rgba(37, 99, 235, 0.5);
+            box-shadow: 0 0 15px var(--glow-color);
             transform: translateY(-2px);
         }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         
-        /* Swiper Slider Styles */
         .swiper { 
             width: 100%; 
-            height: 500px; /* Fixed height for the slider */
+            height: 550px; /* Increased height */
             border-radius: 0.5rem;
         }
         .swiper-slide {
-            text-align: center;
-            font-size: 18px;
             background: #0f172a;
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
             border-radius: 0.5rem;
             overflow: hidden;
             border: 1px solid #334155;
         }
         .swiper-slide img {
-            display: block;
-            width: 100%;
-            height: 100%; /* Fill the container */
-            object-fit: contain; /* Don't stretch */
-            background-color: #0a0a1a;
+            display: block; width: 100%; height: 100%;
+            object-fit: contain; background-color: #0a0a1a; cursor: zoom-in;
         }
         .swiper-slide .slide-caption {
-            padding: 1rem;
-            background-color: #1e293b;
-            color: #cbd5e1;
-            font-size: 0.9rem;
-            width: 100%;
-            min-height: 60px;
-            flex-shrink: 0; /* Prevent caption from shrinking */
+            padding: 1rem; background-color: #1e293b; color: #cbd5e1;
+            font-size: 0.9rem; width: 100%; min-height: 60px; flex-shrink: 0;
         }
-        .swiper-button-next, .swiper-button-prev {
-            color: #60a5fa;
-            transform: scale(0.7);
+        .swiper-button-custom {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 10;
+            cursor: pointer;
+            background-color: rgba(15, 23, 42, 0.7);
+            border: 1px solid #334155;
+            border-radius: 50%;
+            width: 44px; height: 44px;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.3s ease;
         }
+        .swiper-button-custom:hover {
+            background-color: #2563eb;
+            box-shadow: 0 0 15px var(--glow-color);
+        }
+        .swiper-button-custom.prev { left: 10px; }
+        .swiper-button-custom.next { right: 10px; }
         .swiper-pagination-bullet-active { background: #60a5fa; }
 
         .modal {
-            display: none; position: fixed; z-index: 100;
-            left: 0; top: 0; width: 100%; height: 100%;
-            overflow: hidden;
-            background-color: rgba(0,0,0,0.9);
-            justify-content: center; align-items: center;
-            cursor: grab;
+            display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%;
+            overflow: hidden; background-color: rgba(0,0,0,0.9);
+            justify-content: center; align-items: center; cursor: grab;
         }
         .modal-content-inner {
             width: 100%; height: 100%;
             display: flex; justify-content: center; align-items: center;
         }
         .pannable {
-            max-width: 90vw;
-            max-height: 90vh;
-            transition: transform 0.1s ease-out;
-            transform-origin: center center;
+            max-width: 90vw; max-height: 90vh;
+            transition: transform 0.1s ease-out; transform-origin: center center;
         }
         .close {
-            position: absolute; top: 15px; right: 35px;
-            color: #f1f1f1; font-size: 40px; font-weight: bold;
+            position: absolute; top: 15px; right: 35px; color: #f1f1f1; font-size: 40px; font-weight: bold;
             transition: 0.3s; cursor: pointer; z-index: 101;
         }
-        pre.mermaid {
-            width: 100%;
-            cursor: zoom-in;
+        pre.mermaid { width: 100%; cursor: zoom-in; }
+        .highlight-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .highlight-card:hover { transform: translateY(-5px); box-shadow: 0 0 20px var(--glow-color); }
+
+        /* Read More Section */
+        #deepDiveContent {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.7s ease-in-out;
         }
-        .highlight-card {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        #deepDiveContent.expanded {
+            max-height: 1000px; /* Adjust as needed */
         }
-        .highlight-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 0 20px rgba(37, 99, 235, 0.6);
+        
+        /* Interactive Architecture */
+        #interactiveArchitecture a:hover > rect,
+        #interactiveArchitecture .highlight > rect {
+             stroke: #60a5fa;
+             stroke-width: 3px;
+             filter: drop-shadow(0 0 10px var(--glow-color));
+        }
+        #archDescription {
+             min-height: 100px;
         }
     </style>
 </head>
@@ -152,9 +164,7 @@
                 <a href="#api" class="hover:text-blue-400 transition">API Showcase</a>
                 <a href="https://github.com/poVvisal/e-sport-club-management.git" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition">GitHub Repo</a>
             </div>
-             <button id="mobile-menu-button" class="md:hidden text-white">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" /></svg>
-            </button>
+             <button id="mobile-menu-button" class="md:hidden text-white"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" /></svg></button>
         </nav>
         <div id="mobile-menu" class="hidden md:hidden px-6 pb-4">
              <a href="#highlights" class="block py-2 hover:text-blue-400 transition">Highlights</a>
@@ -167,68 +177,79 @@
     <main class="container mx-auto px-6 py-12">
         <section id="introduction" class="mb-24 text-center" data-aos="fade-up">
             <h2 class="text-4xl md:text-6xl font-bold rajdhani glow-text uppercase tracking-wider mb-4">E-Sport Club Management System</h2>
-            <p class="max-w-4xl mx-auto text-lg leading-relaxed text-slate-400">
-                A robust microservices-based platform designed to streamline operations for e-sports organizations, from player management to match scheduling and performance analysis.
-            </p>
+            <p class="max-w-4xl mx-auto text-lg leading-relaxed text-slate-400">A robust microservices-based platform designed to streamline operations for e-sports organizations, from player management to match scheduling and performance analysis.</p>
         </section>
 
         <section id="highlights" class="mb-24">
-             <div class="text-center mb-12">
-                <h2 class="section-title" data-aos="fade-up">Project Highlights</h2>
-            </div>
+             <div class="text-center mb-12"><h2 class="section-title" data-aos="fade-up">Project Highlights</h2></div>
             <div class="max-w-5xl mx-auto grid md:grid-cols-3 gap-8">
                 <div class="highlight-card bg-slate-800/50 p-6 rounded-xl border border-slate-700 text-center" data-aos="fade-up" data-aos-delay="100">
-                    <h3 class="text-xl font-bold rajdhani glow-text mb-3">Microservice Architecture</h3>
-                    <p class="text-slate-400">Deployed on AWS EC2, ensuring scalability, fault tolerance, and independent service management for ultimate reliability.</p>
+                    <h3 class="text-xl font-bold rajdhani glow-text mb-3">Microservice Architecture</h3><p class="text-slate-400">Deployed on AWS EC2, ensuring scalability, fault tolerance, and independent service management for ultimate reliability.</p>
                 </div>
                 <div class="highlight-card bg-slate-800/50 p-6 rounded-xl border border-slate-700 text-center" data-aos="fade-up" data-aos-delay="200">
-                    <h3 class="text-xl font-bold rajdhani glow-text mb-3">Role-Based Access Control</h3>
-                    <p class="text-slate-400">Secure JWT-based authentication protects over 20 API endpoints, granting specific permissions to Players, Coaches, and Admins.</p>
+                    <h3 class="text-xl font-bold rajdhani glow-text mb-3">Role-Based Access Control</h3><p class="text-slate-400">Secure JWT-based authentication protects over 20 API endpoints, granting specific permissions to Players, Coaches, and Admins.</p>
                 </div>
                 <div class="highlight-card bg-slate-800/50 p-6 rounded-xl border border-slate-700 text-center" data-aos="fade-up" data-aos-delay="300">
-                    <h3 class="text-xl font-bold rajdhani glow-text mb-3">Full CRUD Functionality</h3>
-                    <p class="text-slate-400">Comprehensive management of users, schedules, and VOD reviews, with a flexible MongoDB backend.</p>
+                    <h3 class="text-xl font-bold rajdhani glow-text mb-3">Full CRUD Functionality</h3><p class="text-slate-400">Comprehensive management of users, schedules, and VOD reviews, with a flexible MongoDB backend.</p>
                 </div>
+            </div>
+        </section>
+        
+        <section id="deep-dive" class="mb-24 max-w-4xl mx-auto" data-aos="fade-up">
+            <div class="text-center mb-12"><h2 class="section-title">Methodology Deep Dive</h2></div>
+            <div class="bg-slate-800/50 p-8 rounded-xl border border-slate-700">
+                <p class="text-slate-400 text-lg">The system's backend is a microservices architecture built with Node.js and Express.js, chosen for their performance and robust ecosystem. This design isolates key functionalities—such as user registration, coach/admin actions, and player data—into separate, scalable services deployed on AWS EC2 instances. This ensures high availability and simplifies maintenance. For data persistence, MongoDB was selected for its flexible, schema-less structure, which is ideal for evolving e-sports data like player stats and match schedules...</p>
+                <div id="deepDiveContent" class="space-y-4 mt-4 text-slate-400">
+                    <p>Each microservice is configured to run on a dedicated port to prevent conflicts and streamline service communication. An API Gateway (Port 4000) serves as the single entry point for all client requests, routing them to the appropriate service: Registration/Auth (5001), Coach/Admin (5002), or Player (5003). This structured port allocation enhances security and simplifies load balancing.</p>
+                    <p>Security is paramount, with JSON Web Tokens (JWT) handling API authentication. Upon login, a secure token is generated, validating user identity and role for all subsequent requests without needing server-side sessions. Middleware like `body-parser` handles incoming JSON payloads, while `dotenv` manages environment variables, keeping sensitive credentials like database URIs and JWT secrets securely outside the source code.</p>
+                </div>
+                 <button id="readMoreBtn" class="text-blue-400 hover:text-blue-300 mt-4 font-semibold">Read More...</button>
             </div>
         </section>
 
         <section id="architecture" class="mb-24">
-            <div class="text-center mb-12">
-                <h2 class="section-title" data-aos="fade-up">System Architecture</h2>
-            </div>
+            <div class="text-center mb-12"><h2 class="section-title" data-aos="fade-up">System Architecture</h2></div>
             <div class="space-y-16">
-                <div data-aos="fade-up">
-                    <h3 class="text-2xl font-bold text-center mb-6 rajdhani glow-text">High-Level Architecture</h3>
-                    <div class="p-4 bg-slate-800 rounded-lg border border-slate-700 flex justify-center glow-border hover:shadow-2xl hover:shadow-blue-500/20 transition-shadow duration-300">
-                        <pre class="mermaid" id="highLevelArchitecture">
-graph TB
-    subgraph "Infrastructure"
-        Docker[🐳 Docker<br/>Containerization]
-        PM2[⚙️ PM2<br/>Process Manager]
-    end
-
-    subgraph "Services"
-        Auth[🔐 Auth Service<br/>Port: 5001]
-        Coach[👨‍💼 Coach Service<br/>Port: 5002]
-        Player[🎮 Player Service<br/>Port: 5003]
-    end
-
-    Client[🖥️ Client] -->|HTTP Requests| Gateway[🚪 API Gateway<br/>Port: 4000]
-    Gateway --> |/auth/*| Auth
-    Gateway --> |/coach/* /admin/*| Coach
-    Gateway --> |/player/*| Player
-
-    Auth --> MongoDB[(🗄️ MongoDB)]
-    Coach --> MongoDB
-    Player --> MongoDB
-    
-    Auth -.->|Generates/Verifies| JWT[🔑 JWT]
-    Gateway -.->|Validates| JWT
-                        </pre>
+                <div data-aos="fade-up" class="p-4 bg-slate-800 rounded-lg border border-slate-700 glow-border">
+                    <h3 class="text-2xl font-bold text-center mb-6 rajdhani glow-text">Interactive High-Level Architecture</h3>
+                    <div class="grid md:grid-cols-2 gap-8 items-center">
+                        <div id="interactiveArchitecture">
+                           <pre class="mermaid">
+                                ---
+                                title: High-Level Architecture
+                                ---
+                                graph TD
+                                    Client[🖥️ Client] -->|HTTP Requests| Gateway[🚪 API Gateway]
+                                    
+                                    subgraph Services
+                                        Gateway --> Auth[🔐 Auth Service]
+                                        Gateway --> Coach[👨‍💼 Coach Service]
+                                        Gateway --> Player[🎮 Player Service]
+                                    end
+                                    
+                                    subgraph Database
+                                        Auth --> MongoDB[(🗄️ MongoDB)]
+                                        Coach --> MongoDB
+                                        Player --> MongoDB
+                                    end
+                                    
+                                    classDef default fill:#1e293b,stroke:#94a3b8,stroke-width:1px,color:#e2e8f0;
+                                    classDef highlight fill:#2563eb,stroke:#fff,stroke-width:2px,color:#fff;
+                                    
+                                    click Auth call handleArchClick('auth') "Auth Service Details"
+                                    click Coach call handleArchClick('coach') "Coach Service Details"
+                                    click Player call handleArchClick('player') "Player Service Details"
+                                    click Gateway call handleArchClick('gateway') "API Gateway Details"
+                           </pre>
+                        </div>
+                        <div id="archDescription" class="p-4 bg-slate-900/50 rounded-lg text-slate-300">
+                           <p class="text-lg rajdhani glow-text">Click a node to learn more.</p>
+                           <p>Explore the system's components by clicking on any service node in the diagram to see its primary responsibilities.</p>
+                        </div>
                     </div>
                 </div>
                 <div data-aos="fade-up">
-                    <h3 class="text-2xl font-bold text-center mb-6 rajdhani glow-text">API Request Flow Diagram</h3>
+                    <h3 class="text-2xl font-bold text-center mb-6 rajdhani glow-text">API Request Flow (Sequence)</h3>
                     <div class="p-4 bg-slate-800 rounded-lg border border-slate-700 flex justify-center glow-border hover:shadow-2xl hover:shadow-blue-500/20 transition-shadow duration-300">
                          <pre class="mermaid" id="apiRequestFlow">
 sequenceDiagram
@@ -271,9 +292,7 @@ sequenceDiagram
 
         <!-- API Showcase Section -->
         <section id="api" class="mb-16">
-            <div class="text-center mb-12" data-aos="fade-up">
-                 <h2 class="section-title">API Showcase</h2>
-            </div>
+            <div class="text-center mb-12" data-aos="fade-up"><h2 class="section-title">API Showcase</h2></div>
             <div id="tabs" class="flex flex-wrap justify-center gap-2 md:gap-4 mb-8" data-aos="fade-up">
                 <button class="tab-button bg-slate-800 border border-slate-700 text-slate-300 py-2 px-4 rounded-md active" data-tab="registration"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg><span>Registration</span></button>
                 <button class="tab-button bg-slate-800 border border-slate-700 text-slate-300 py-2 px-4 rounded-md" data-tab="auth"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg><span>Auth</span></button>
@@ -281,9 +300,8 @@ sequenceDiagram
                 <button class="tab-button bg-slate-800 border border-slate-700 text-slate-300 py-2 px-4 rounded-md" data-tab="admin"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg><span>Admin</span></button>
                 <button class="tab-button bg-slate-800 border border-slate-700 text-slate-300 py-2 px-4 rounded-md" data-tab="player"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12h12M6 12l5-5M6 12l5 5"></path><path d="M18 12l-5-5M18 12l-5 5"></path></svg><span>Player</span></button>
             </div>
-
-            <div id="tab-content-container" class="max-w-7xl mx-auto" data-aos="fade-up">
-                <div id="registration" class="tab-content active"><div class="swiper swiper-registration"><div class="swiper-wrapper">
+            <div id="tab-content-container" class="max-w-screen-lg mx-auto" data-aos="fade-up">
+                <div id="registration" class="tab-content active relative group"><div class="swiper swiper-registration"><div class="swiper-wrapper">
                     <div class="swiper-slide"><img src="E-Sport Club Management System_files/image006.gif" alt="Dbconnect code"><div class="slide-caption">Database Connection Logic</div></div>
                     <div class="swiper-slide"><img src="E-Sport Club Management System_files/image008.gif" alt="Person_Schema code"><div class="slide-caption">User Schema for MongoDB</div></div>
                     <div class="swiper-slide"><img src="E-Sport Club Management System_files/image010.gif" alt="vod_Schema code"><div class="slide-caption">VOD Schema for MongoDB</div></div>
@@ -293,15 +311,15 @@ sequenceDiagram
                     <div class="swiper-slide"><img src="E-Sport Club Management System_files/image018.gif" alt="Register an admin"><div class="slide-caption">API Test: Registering a new Admin</div></div>
                     <div class="swiper-slide"><img src="E-Sport Club Management System_files/image020.gif" alt="Handling missed entry"><div class="slide-caption">Error Handling: Invalid Input</div></div>
                     <div class="swiper-slide"><img src="E-Sport Club Management System_files/image022.gif" alt="Registration in MongoDB"><div class="slide-caption">Database View: New Users Created</div></div>
-                </div><div class="swiper-button-next"></div><div class="swiper-button-prev"></div><div class="swiper-pagination"></div></div></div>
-                <div id="auth" class="tab-content"><div class="swiper swiper-auth"><div class="swiper-wrapper">
+                </div><div class="swiper-pagination"></div></div><div class="swiper-button-custom prev"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></div><div class="swiper-button-custom next"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div></div>
+                <div id="auth" class="tab-content relative group"><div class="swiper swiper-auth"><div class="swiper-wrapper">
                     <div class="swiper-slide"><img src="E-Sport Club Management System_files/image024.gif" alt="Authentication Service Code"><div class="slide-caption">Authentication Service Logic</div></div>
                     <div class="swiper-slide"><img src="E-Sport Club Management System_files/image026.gif" alt="Coach Login"><div class="slide-caption">API Test: Successful Coach Login</div></div>
                     <div class="swiper-slide"><img src="E-Sport Club Management System_files/image028.gif" alt="Admin Login"><div class="slide-caption">API Test: Successful Admin Login</div></div>
                     <div class="swiper-slide"><img src="E-Sport Club Management System_files/image030.gif" alt="Player login"><div class="slide-caption">API Test: Successful Player Login</div></div>
                     <div class="swiper-slide"><img src="E-Sport Club Management System_files/image032.gif" alt="Incorrect Login"><div class="slide-caption">Error Handling: Invalid Credentials</div></div>
-                </div><div class="swiper-button-next"></div><div class="swiper-button-prev"></div><div class="swiper-pagination"></div></div></div>
-                <div id="coach" class="tab-content"><div class="swiper swiper-coach"><div class="swiper-wrapper">
+                </div><div class="swiper-pagination"></div></div><div class="swiper-button-custom prev"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></div><div class="swiper-button-custom next"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div></div>
+                <div id="coach" class="tab-content relative group"><div class="swiper swiper-coach"><div class="swiper-wrapper">
                     <div class="swiper-slide"><img src="E-Sport Club Management System_files/image034.gif" alt="Coach Post Schedule Code"><div class="slide-caption">Logic for Creating a New Schedule</div></div>
                     <div class="swiper-slide"><img src="E-Sport Club Management System_files/image036.gif" alt="Coach Post Schedule Result"><div class="slide-caption">API Test: Coach Posts a New Match</div></div>
                     <div class="swiper-slide"><img src="E-Sport Club Management System_files/image038.gif" alt="Schedule in MongoDB"><div class="slide-caption">Database View: New Schedule Created</div></div>
@@ -310,8 +328,8 @@ sequenceDiagram
                     <div class="swiper-slide"><img src="E-Sport Club Management System_files/image044.gif" alt="Coach View Roster Code"><div class="slide-caption">Logic for Fetching Team Roster</div></div>
                     <div class="swiper-slide"><img src="E-Sport Club Management System_files/image046.gif" alt="Coach View Roster Result"><div class="slide-caption">API Test: Coach Views Team Roster</div></div>
                     <div class="swiper-slide"><img src="E-Sport Club Management System_files/image048.gif" alt="Roster in MongoDB"><div class="slide-caption">Database View: Team Roster Data</div></div>
-                </div><div class="swiper-button-next"></div><div class="swiper-button-prev"></div><div class="swiper-pagination"></div></div></div>
-                <div id="admin" class="tab-content"><div class="swiper swiper-admin"><div class="swiper-wrapper">
+                </div><div class="swiper-pagination"></div></div><div class="swiper-button-custom prev"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></div><div class="swiper-button-custom next"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div></div>
+                <div id="admin" class="tab-content relative group"><div class="swiper swiper-admin"><div class="swiper-wrapper">
                    <div class="swiper-slide"><img src="E-Sport Club Management System_files/image050.gif" alt="Admin Delete User Code"><div class="slide-caption">Logic for Deleting a User</div></div>
                     <div class="swiper-slide"><img src="E-Sport Club Management System_files/image052.gif" alt="Admin Remove Player"><div class="slide-caption">API Test: Admin Deletes a Player</div></div>
                     <div class="swiper-slide"><img src="E-Sport Club Management System_files/image054.gif" alt="Player Removed in DB"><div class="slide-caption">Database View: Player Removed</div></div>
@@ -321,8 +339,8 @@ sequenceDiagram
                     <div class="swiper-slide"><img src="E-Sport Club Management System_files/image062.jpg" alt="Player info before update"><div class="slide-caption">Database View: Player Data Before Update</div></div>
                     <div class="swiper-slide"><img src="E-Sport Club Management System_files/image064.gif" alt="Admin Update Player Result"><div class="slide-caption">API Test: Admin Updates Player Info</div></div>
                     <div class="swiper-slide"><img src="E-Sport Club Management System_files/image066.gif" alt="Player Updated in DB"><div class="slide-caption">Database View: Player Info Updated</div></div>
-                </div><div class="swiper-button-next"></div><div class="swiper-button-prev"></div><div class="swiper-pagination"></div></div></div>
-                <div id="player" class="tab-content"><div class="swiper swiper-player"><div class="swiper-wrapper">
+                </div><div class="swiper-pagination"></div></div><div class="swiper-button-custom prev"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></div><div class="swiper-button-custom next"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div></div>
+                <div id="player" class="tab-content relative group"><div class="swiper swiper-player"><div class="swiper-wrapper">
                     <div class="swiper-slide"><img src="E-Sport Club Management System_files/image068.gif" alt="Player View Schedules Code"><div class="slide-caption">Logic for Fetching Schedules</div></div>
                     <div class="swiper-slide"><img src="E-Sport Club Management System_files/image070.gif" alt="Player View Schedules Result"><div class="slide-caption">API Test: Player Views All Schedules</div></div>
                     <div class="swiper-slide"><img src="E-Sport Club Management System_files/image072.gif" alt="Player View Match by ID"><div class="slide-caption">API Test: Player Views Specific Match by ID</div></div>
@@ -338,47 +356,27 @@ sequenceDiagram
                     <div class="swiper-slide"><img src="E-Sport Club Management System_files/image092.gif" alt="VOD Reviewed in DB"><div class="slide-caption">Database View: VOD Marked as Reviewed</div></div>
                     <div class="swiper-slide"><img src="E-Sport Club Management System_files/image094.gif" alt="Unauthorized VOD Review"><div class="slide-caption">Security: Wrong User Tries to Review VOD</div></div>
                     <div class="swiper-slide"><img src="E-Sport Club Management System_files/image096.gif" alt="Final Architecture Diagram"><div class="slide-caption">Final Detailed System Architecture</div></div>
-                </div><div class="swiper-button-next"></div><div class="swiper-button-prev"></div><div class="swiper-pagination"></div></div></div>
+                </div><div class="swiper-pagination"></div></div><div class="swiper-button-custom prev"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></div><div class="swiper-button-custom next"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div></div>
             </div>
         </section>
     </main>
 
-    <!-- Modal for Pan/Zoom of any pannable element (images or diagrams) -->
-    <div id="pannableModal" class="modal">
-        <span class="close">&times;</span>
-        <div class="modal-content-inner" id="pannableContainer"></div>
-    </div>
+    <div id="pannableModal" class="modal"><span class="close">&times;</span><div class="modal-content-inner" id="pannableContainer"></div></div>
     
-    <footer class="text-center py-6 bg-slate-900 border-t border-slate-800">
-        <p class="text-slate-500">E-Sport Club Management System Report | Generated for poVvisal</p>
-    </footer>
+    <footer class="text-center py-6 bg-slate-900 border-t border-slate-800"><p class="text-slate-500">E-Sport Club Management System Report | Generated for poVvisal</p></footer>
     
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
     <script>
-        // --- INITIALIZE MERMAID ---
-        mermaid.initialize({
-            startOnLoad: true,
-            theme: 'base',
-            themeVariables: {
-                background: '#0f172a',
-                primaryColor: '#1e293b',
-                primaryTextColor: '#e0e0e0',
-                lineColor: '#60a5fa',
-                textColor: '#cbd5e1',
-                nodeBorder: '#2563eb',
-                mainBkg: '#0f172a',
-                actorBkg: '#1e293b',
-                actorBorder: '#60a5fa',
-                noteBkgColor: '#0a0a1a',
-                noteTextColor: '#e0e0e0',
-                noteBorderColor: '#334155'
-            }
-        });
+        mermaid.initialize({ startOnLoad: true, theme: 'base', themeVariables: {
+            background: '#0f172a', primaryColor: '#1e293b', primaryTextColor: '#e0e0e0',
+            lineColor: '#60a5fa', textColor: '#cbd5e1', nodeBorder: '#2563eb', mainBkg: '#0f172a',
+            actorBkg: '#1e293b', actorBorder: '#60a5fa', noteBkgColor: '#0a0a1a',
+            noteTextColor: '#e0e0e0', noteBorderColor: '#334155'
+        }});
 
         AOS.init({ duration: 800, once: true });
 
-        // --- DYNAMIC BACKGROUND ANIMATION ---
         const canvas = document.getElementById('background-animation');
         const ctx = canvas.getContext('2d');
         let particlesArray;
@@ -391,12 +389,9 @@ sequenceDiagram
 
         window.addEventListener('mousemove', e => {
             mouse.x = e.clientX;
-            mouse.y = e.clientY + window.scrollY; // Adjust for scroll position
+            mouse.y = e.clientY + window.scrollY;
         });
-        window.addEventListener('mouseout', () => {
-            mouse.x = undefined;
-            mouse.y = undefined;
-        });
+        window.addEventListener('mouseout', () => { mouse.x = undefined; mouse.y = undefined; });
 
         class Particle {
             constructor(x, y, dirX, dirY, size) {
@@ -417,22 +412,17 @@ sequenceDiagram
                 let dx = mouse.x - this.x;
                 let dy = mouse.y - this.y;
                 let distance = Math.sqrt(dx * dx + dy * dy);
-                if (distance < mouse.radius) {
-                    this.size = this.baseSize * 3;
-                    this.color = 'rgba(96, 165, 250, 0.6)';
-                } else {
-                    this.size = this.baseSize;
-                    this.color = 'rgba(37, 99, 235, 0.2)';
-                }
+                this.size = (distance < mouse.radius) ? this.baseSize * 3 : this.baseSize;
+                this.color = (distance < mouse.radius) ? 'rgba(96, 165, 250, 0.6)' : 'rgba(37, 99, 235, 0.2)';
                 this.draw();
             }
         }
         
         function initParticles() {
             particlesArray = [];
-            let numberOfParticles = (canvas.width * canvas.height) / 15000;
+            let numberOfParticles = (canvas.width * canvas.height) / 10000;
             for (let i = 0; i < numberOfParticles; i++) {
-                let size = (Math.random() * 1.5) + 0.5;
+                let size = (Math.random() * 1.5) + 1;
                 let x = Math.random() * canvas.width;
                 let y = Math.random() * canvas.height;
                 let dirX = (Math.random() * 0.4) - 0.2;
@@ -445,26 +435,35 @@ sequenceDiagram
         function animateParticles() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             for (let i = 0; i < particlesArray.length; i++) particlesArray[i].update();
+            connect(); // Draw lines between particles
             animationFrameId = requestAnimationFrame(animateParticles);
         }
 
-        window.addEventListener('resize', () => {
-            setCanvasSize();
-            initParticles();
-        });
+        function connect() {
+            for (let a = 0; a < particlesArray.length; a++) {
+                for (let b = a; b < particlesArray.length; b++) {
+                    let distance = Math.sqrt(Math.pow(particlesArray[a].x - particlesArray[b].x, 2) + Math.pow(particlesArray[a].y - particlesArray[b].y, 2));
+                    if (distance < 100) {
+                        ctx.strokeStyle = `rgba(96, 165, 250, ${1 - distance / 100})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.beginPath();
+                        ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                        ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
         
-        // Use a small timeout to ensure document.body.scrollHeight is accurate
         window.addEventListener('load', () => {
              setTimeout(() => {
-                setCanvasSize();
-                initParticles();
+                setCanvasSize(); initParticles();
                 if(animationFrameId) cancelAnimationFrame(animationFrameId);
                 animateParticles();
             }, 500);
         });
+        window.addEventListener('resize', () => { setCanvasSize(); initParticles(); });
         
-
-        // --- UI SCRIPT ---
         const mobileMenuButton = document.getElementById('mobile-menu-button');
         const mobileMenu = document.getElementById('mobile-menu');
         mobileMenuButton.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
@@ -484,18 +483,17 @@ sequenceDiagram
 
         const swiperOptions = {
             loop: true, pagination: { el: '.swiper-pagination', clickable: true },
-            navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev' },
+            navigation: { nextEl: '.next', prevEl: '.prev' },
             keyboard: { enabled: true },
         };
         const swipers = {
-            registration: new Swiper('.swiper-registration', swiperOptions),
-            auth: new Swiper('.swiper-auth', swiperOptions),
-            coach: new Swiper('.swiper-coach', swiperOptions),
-            admin: new Swiper('.swiper-admin', swiperOptions),
-            player: new Swiper('.swiper-player', swiperOptions)
+            registration: new Swiper('.swiper-registration', { ...swiperOptions, navigation: { nextEl: '#registration .next', prevEl: '#registration .prev' } }),
+            auth: new Swiper('.swiper-auth', { ...swiperOptions, navigation: { nextEl: '#auth .next', prevEl: '#auth .prev' } }),
+            coach: new Swiper('.swiper-coach', { ...swiperOptions, navigation: { nextEl: '#coach .next', prevEl: '#coach .prev' } }),
+            admin: new Swiper('.swiper-admin', { ...swiperOptions, navigation: { nextEl: '#admin .next', prevEl: '#admin .prev' } }),
+            player: new Swiper('.swiper-player', { ...swiperOptions, navigation: { nextEl: '#player .next', prevEl: '#player .prev' } })
         };
-
-        // --- UNIVERSAL PAN & ZOOM MODAL ---
+        
         const pannableModal = document.getElementById('pannableModal');
         const pannableContainer = document.getElementById('pannableContainer');
         const closeBtn = pannableModal.querySelector('.close');
@@ -503,68 +501,79 @@ sequenceDiagram
         function openPannableModal(element) {
             pannableContainer.innerHTML = '';
             const clone = element.cloneNode(true);
-            clone.style.maxWidth = '90vw';
-            clone.style.maxHeight = '90vh';
+            clone.style.width = 'auto'; // Let the content define the width
+            clone.style.height = 'auto'; // Let the content define the height
             clone.classList.add('pannable');
             pannableContainer.appendChild(clone);
             pannableModal.style.display = 'flex';
-            
             let panZoom = { scale: 1, x: 0, y: 0 };
             let isPanning = false;
             let startPoint = { x: 0, y: 0 };
-
-            function updateTransform() {
-                clone.style.transform = `translate(${panZoom.x}px, ${panZoom.y}px) scale(${panZoom.scale})`;
-            }
-
-            pannableModal.onmousedown = (e) => {
-                if (e.target === clone || e.target.closest('.pannable')) {
-                    e.preventDefault();
-                    isPanning = true;
+            const updateTransform = () => { clone.style.transform = `translate(${panZoom.x}px, ${panZoom.y}px) scale(${panZoom.scale})`; };
+            const onMouseDown = (e) => {
+                if (e.target.closest('.pannable')) {
+                    e.preventDefault(); isPanning = true;
                     startPoint = { x: e.clientX - panZoom.x, y: e.clientY - panZoom.y };
                     pannableModal.style.cursor = 'grabbing';
                 }
             };
-            pannableModal.onmousemove = (e) => {
-                if (!isPanning) return;
-                e.preventDefault();
+            const onMouseMove = (e) => {
+                if (!isPanning) return; e.preventDefault();
                 panZoom.x = e.clientX - startPoint.x;
                 panZoom.y = e.clientY - startPoint.y;
                 updateTransform();
             };
-            pannableModal.onmouseup = () => {
-                isPanning = false;
-                pannableModal.style.cursor = 'grab';
-            };
-            pannableModal.onmouseleave = pannableModal.onmouseup; // Stop panning if mouse leaves modal
-            
-            pannableModal.onwheel = (e) => {
+            const onMouseUp = () => { isPanning = false; pannableModal.style.cursor = 'grab'; };
+            const onWheel = (e) => {
                 e.preventDefault();
                 const scaleAmount = -e.deltaY * 0.001;
                 panZoom.scale = Math.max(0.2, Math.min(10, panZoom.scale + scaleAmount));
                 updateTransform();
             };
+            pannableModal.addEventListener('mousedown', onMouseDown);
+            pannableModal.addEventListener('mousemove', onMouseMove);
+            pannableModal.addEventListener('mouseup', onMouseUp);
+            pannableModal.addEventListener('mouseleave', onMouseUp);
+            pannableModal.addEventListener('wheel', onWheel, { passive: false });
+
+            closeBtn.onclick = () => {
+                pannableModal.style.display = "none";
+                pannableModal.removeEventListener('mousedown', onMouseDown);
+                pannableModal.removeEventListener('mousemove', onMouseMove);
+                pannableModal.removeEventListener('mouseup', onMouseUp);
+                pannableModal.removeEventListener('mouseleave', onMouseUp);
+                pannableModal.removeEventListener('wheel', onWheel);
+            };
         }
+        
+        document.querySelectorAll(".swiper-slide img").forEach(img => { img.onclick = () => openPannableModal(img); });
+        document.querySelectorAll('pre.mermaid').forEach(el => { el.onclick = e => { const svg = e.currentTarget.querySelector('svg'); if (svg) openPannableModal(svg); } });
+        pannableModal.onclick = e => { if (e.target === pannableModal) closeBtn.onclick(); };
 
-        // Attach to Swiper images
-        document.querySelectorAll(".swiper-slide img").forEach(img => {
-            img.style.cursor = 'zoom-in';
-            img.onclick = () => openPannableModal(img);
+        // Read More Button
+        const readMoreBtn = document.getElementById('readMoreBtn');
+        const deepDiveContent = document.getElementById('deepDiveContent');
+        readMoreBtn.addEventListener('click', () => {
+            deepDiveContent.classList.toggle('expanded');
+            readMoreBtn.textContent = deepDiveContent.classList.contains('expanded') ? 'Read Less...' : 'Read More...';
         });
 
-        // Attach to Mermaid diagrams
-        document.querySelectorAll('pre.mermaid').forEach(el => {
-            el.addEventListener('click', (e) => {
-                const svgElement = e.currentTarget.querySelector('svg');
-                if (svgElement) openPannableModal(svgElement);
-            });
-        });
-
-        closeBtn.onclick = () => pannableModal.style.display = "none";
-        pannableModal.onclick = (e) => {
-             if (e.target === pannableModal) pannableModal.style.display = "none";
+        // Interactive Architecture Diagram
+        const archDescriptions = {
+            auth: { title: '🔐 Auth Service', text: 'Handles user registration, login, and generates JWT tokens for secure authentication across all other services.' },
+            coach: { title: '👨‍💼 Coach Service', text: 'Manages team rosters, creates match schedules, and assigns VODs for players to review. Also handles admin-level user management.' },
+            player: { title: '🎮 Player Service', text: 'Allows players to view their schedules, access assigned VODs, and submit reviews. Handles player-specific data.' },
+            gateway: { title: '🚪 API Gateway', text: 'Acts as the single entry point for all incoming client traffic. It routes requests to the appropriate microservice based on the URL.' }
         };
+        const archDescContainer = document.getElementById('archDescription');
+        window.handleArchClick = (nodeId) => {
+            const nodes = document.querySelectorAll('#interactiveArchitecture .node');
+            nodes.forEach(n => n.classList.remove('highlight'));
+            document.querySelector(`#${nodeId}`).classList.add('highlight');
 
+            const info = archDescriptions[nodeId];
+            archDescContainer.innerHTML = `<p class="text-lg rajdhani glow-text">${info.title}</p><p>${info.text}</p>`;
+        };
     </script>
 </body>
 </html>
